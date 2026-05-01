@@ -27,7 +27,7 @@ export const protect = async (req, res, next) => {
       return res.status(404).json({ msg: "User not found" });
     }
 
-    req.user = user;
+    req.user = { ...user, userId: user.id };
     next();
   } catch (err) {
     return res.status(401).json({ msg: "Invalid token" });

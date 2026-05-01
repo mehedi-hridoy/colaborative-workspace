@@ -4,6 +4,8 @@ import cookieParser from "cookie-parser";
 import dotenv from "dotenv";
 import { prisma } from "./config/db.js";
 import authRoutes from "./routes/auth.routes.js";
+import workspaceRoutes from "./routes/workspace.routes.js";
+import goalsRoutes from "./routes/goals.routes.js";
 
 dotenv.config();
 
@@ -16,6 +18,8 @@ app.use(express.json());
 
 // routes
 app.use("/api/auth", authRoutes);
+app.use("/api/workspaces", workspaceRoutes);
+app.use("/api/goals", goalsRoutes);
 
 // test route
 app.get("/", (req, res) => {

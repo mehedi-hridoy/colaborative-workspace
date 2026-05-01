@@ -16,13 +16,19 @@ model User {
   createdAt DateTime @default(now())
 
   memberships Membership[]
+  workspaces  Workspace[] @relation("workspace_owner")
+  goals       Goal[]
 }
 
 model Workspace {
   id          String   @id @default(uuid())
   name        String
   description String?
+  color       String?   
   createdAt   DateTime @default(now())
+
+  ownerId String        
+  owner   User @relation("workspace_owner", fields: [ownerId], references: [id])
 
   members Membership[]
   goals   Goal[]
@@ -44,8 +50,10 @@ model Goal {
   description String?
   status      String
   dueDate     DateTime?
+  createdAt   DateTime @default(now())
   workspaceId String
   ownerId     String
 
   workspace Workspace @relation(fields: [workspaceId], references: [id])
+  owner     User      @relation(fields: [ownerId], references: [id])
 }
