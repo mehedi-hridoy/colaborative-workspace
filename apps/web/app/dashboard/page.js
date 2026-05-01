@@ -14,10 +14,11 @@ export default function Dashboard() {
   const [creating, setCreating] = useState(false);
   const [goalTitle, setGoalTitle] = useState("");
   const [creatingGoal, setCreatingGoal] = useState(false);
+  const [activities, setActivities] = useState([]);
 
   const { user, loading, fetchUser, logout } = useAuthStore();
   const { workspaces, setWorkspaces, addWorkspace, currentWorkspace, setCurrentWorkspace, loadWorkspace } = useWorkspaceStore();
-  const { goals, setGoals, addGoal } = useGoalStore();
+  const { goals, setGoals, addGoal, updateGoal } = useGoalStore();
 
   // auth check
   useEffect(() => {
@@ -67,6 +68,25 @@ export default function Dashboard() {
       };
 
       fetchGoals();
+    }
+  }, [currentWorkspace]);
+
+  // fetch activities when workspace changes
+  useEffect(() => {
+    if (currentWorkspace) {
+      const fetchActivities = async () => {
+        const res = await fetch(
+          `http://localhost:5000/api/activity/${currentWorkspace.id}`,
+          {
+            credentials: "include",
+          }
+        );
+
+        const data = await res.json();
+        setActivities(data);
+      };
+
+      fetchActivities();
     }
   }, [currentWorkspace]);
 
@@ -131,6 +151,47 @@ export default function Dashboard() {
       alert("Error creating goal: " + error.message);
     } finally {
       setCreatingGoal(false);
+    }
+  };
+
+  const calculateProgress = (milestones) => {
+    if (!milestones || milestones.length === 0) return 0;
+    const completed = milestones.filter((m) => m.completed).length;
+    return Math.round((completed / milestones.length) * 100);
+  };
+
+  const handleToggleMilestone = async (goalId, milestoneId) => {
+    try {
+      const res = await fetch(`http://localhost:5000/api/milestones/${milestoneId}`, {
+        method: "PUT",
+        credentials: "include",
+      });
+
+      if (!res.ok) {
+        throw new Error("Failed to toggle milestone");
+      }
+
+      const updatedMilestone = await res.json();
+
+      // Update goal's milestones array
+      const updatedGoal = goals.find((g) => g.id === goalId);
+      if (updatedGoal) {
+        const updatedMilestones = updatedGoal.milestones.map((m) =>
+          m.id === milestoneId ? updatedMilestone : m
+        );
+        updateGoal(goalId, { ...updatedGoal, milestones: updatedMilestones });
+      }
+
+      // Refresh activity feed
+      if (currentWorkspace) {
+        const actRes = await fetch(`http://localhost:5000/api/activity/${currentWorkspace.id}`, {
+          credentials: "include",
+        });
+        const actData = await actRes.json();
+        setActivities(actData);
+      }
+    } catch (error) {
+      alert("Error toggling milestone: " + error.message);
     }
   };
 
@@ -239,23 +300,104 @@ export default function Dashboard() {
           {goals.length === 0 ? (
             <p style={{ color: "#999", fontStyle: "italic" }}>No goals yet</p>
           ) : (
-            goals.map((goal) => (
-              <div
-                key={goal.id}
-                style={{
-                  padding: "10px",
-                  margin: "5px 0",
-                  border: "1px solid #ddd",
-                  borderRadius: "4px",
-                  backgroundColor: "#fafafa",
-                }}
-              >
-                <h3>{goal.title}</h3>
-                <p>Status: <strong>{goal.status}</strong></p>
-              </div>
-            ))
+            goals.map((goal) => {
+              const progress = calculateProgress(goal.milestones);
+              return (
+                <div
+                  key={goal.id}
+                  style={{
+                    padding: "15px",
+                    margin: "10px 0",
+                    border: "1px solid #ddd",
+                    borderRadius: "4px",
+                    backgroundColor: "#fafafa",
+                  }}
+                >
+                  <h3 style={{ color: "#000", margin: "0 0 8px 0" }}>{goal.title}</h3>
+                  <p style={{ color: "#333", margin: "5px 0" }}>Status: <strong style={{ color: "#000" }}>{goal.status}</strong></p>
+
+                  {/* Progress Bar */}
+                  <div style={{ marginBottom: "10px" }}>
+                    <p style={{ fontSize: "14px", marginBottom: "5px", color: "#333" }}>
+                      Progress: <strong style={{ color: "#000" }}>{progress}%</strong> <span style={{ color: "#666" }}>({goal.milestones?.filter((m) => m.completed).length || 0}/{goal.milestones?.length || 0})</span>
+                    </p>
+                    <div style={{ background: "#e0e0e0", height: "12px", width: "100%", borderRadius: "4px", overflow: "hidden" }}>
+                      <div
+                        style={{
+                          width: `${progress}%`,
+                          background: progress === 100 ? "#4caf50" : "#0a3d33",
+                          height: "100%",
+                          transition: "width 0.3s ease",
+                        }}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Milestones */}
+                  {goal.milestones && goal.milestones.length > 0 && (
+                    <div style={{ marginTop: "10px", paddingTop: "10px", borderTop: "1px solid #e0e0e0" }}>
+                      <p style={{ fontSize: "13px", fontWeight: "bold", marginBottom: "8px", color: "#000" }}>Milestones:</p>
+                      {goal.milestones.map((milestone) => (
+                        <div
+                          key={milestone.id}
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            padding: "6px",
+                            marginBottom: "5px",
+                            backgroundColor: "#fff",
+                            border: "1px solid #f0f0f0",
+                            borderRadius: "3px",
+                            fontSize: "13px",
+                          }}
+                        >
+                          <input
+                            type="checkbox"
+                            checked={milestone.completed}
+                            onChange={() => handleToggleMilestone(goal.id, milestone.id)}
+                            style={{ marginRight: "10px", cursor: "pointer" }}
+                          />
+                          <span style={{ textDecoration: milestone.completed ? "line-through" : "none", color: milestone.completed ? "#999" : "#000" }}>
+                            {milestone.title}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              );
+            })
           )}
         </>
+      )}
+
+      {/* ACTIVITY FEED */}
+      <h2 style={{ marginTop: "30px", color: "#000" }}>Activity Feed</h2>
+      {!currentWorkspace ? (
+        <p style={{ color: "#999", fontStyle: "italic" }}>Select a workspace to see activities</p>
+      ) : activities.length === 0 ? (
+        <p style={{ color: "#999", fontStyle: "italic" }}>No activities yet</p>
+      ) : (
+        <div style={{ backgroundColor: "#f9f9f9", borderRadius: "4px", maxHeight: "400px", overflowY: "auto" }}>
+          {activities.map((activity) => (
+            <div
+              key={activity.id}
+              style={{
+                borderBottom: "1px solid #e0e0e0",
+                padding: "12px",
+                fontSize: "14px",
+                color: "#333",
+              }}
+            >
+              <p style={{ margin: "0 0 5px 0", color: "#000" }}>
+                <strong>{activity.user?.name || "User"}</strong> {activity.message}
+              </p>
+              <small style={{ color: "#999" }}>
+                {new Date(activity.createdAt).toLocaleString()}
+              </small>
+            </div>
+          ))}
+        </div>
       )}
 
       <button onClick={handleLogout} style={{ marginTop: "20px", padding: "8px 16px", backgroundColor: "#d32f2f", color: "white", border: "none", borderRadius: "4px", cursor: "pointer" }}>Logout</button>

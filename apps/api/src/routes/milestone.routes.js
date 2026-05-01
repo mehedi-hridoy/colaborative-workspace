@@ -44,12 +44,27 @@ router.put("/:id", protect, async (req, res) => {
   try {
     const milestone = await prisma.milestone.findUnique({
       where: { id: req.params.id },
+      include: {
+        goal: true,
+      },
     });
 
     const updated = await prisma.milestone.update({
       where: { id: req.params.id },
       data: {
         completed: !milestone.completed,
+      },
+    });
+
+    // Log activity
+    await prisma.activity.create({
+      data: {
+        type: "MILESTONE_UPDATED",
+        message: `Milestone "${milestone.title}" marked as ${
+          updated.completed ? "completed" : "incomplete"
+        }`,
+        userId: req.user.userId,
+        workspaceId: milestone.goal.workspaceId,
       },
     });
 

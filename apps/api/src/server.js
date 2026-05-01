@@ -7,6 +7,7 @@ import authRoutes from "./routes/auth.routes.js";
 import workspaceRoutes from "./routes/workspace.routes.js";
 import goalsRoutes from "./routes/goals.routes.js";
 import milestoneRoutes from "./routes/milestone.routes.js";
+import activityRoutes from "./routes/activity.routes.js";
 
 dotenv.config();
 
@@ -22,6 +23,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/workspaces", workspaceRoutes);
 app.use("/api/goals", goalsRoutes);
 app.use("/api/milestones", milestoneRoutes);
+app.use("/api/activity", activityRoutes);
 
 // test route
 app.get("/", (req, res) => {

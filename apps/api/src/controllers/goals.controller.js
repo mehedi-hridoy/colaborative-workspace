@@ -8,6 +8,9 @@ export const getGoals = async (req, res) => {
       where: {
         workspaceId,
       },
+      include: {
+        milestones: true,
+      },
       orderBy: {
         createdAt: "desc",
       },

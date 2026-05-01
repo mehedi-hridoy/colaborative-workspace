@@ -18,6 +18,7 @@ model User {
   memberships Membership[]
   workspaces  Workspace[] @relation("workspace_owner")
   goals       Goal[]
+  activities  Activity[]
 }
 
 model Workspace {
@@ -30,8 +31,9 @@ model Workspace {
   ownerId String        
   owner   User @relation("workspace_owner", fields: [ownerId], references: [id])
 
-  members Membership[]
-  goals   Goal[]
+  members    Membership[]
+  goals      Goal[]
+  activities Activity[]
 }
 
 model Membership {
@@ -68,4 +70,17 @@ model Milestone {
 
   goalId String
   goal   Goal @relation(fields: [goalId], references: [id])
+}
+
+model Activity {
+  id        String   @id @default(uuid())
+  type      String
+  message   String
+  createdAt DateTime @default(now())
+
+  userId String
+  user   User @relation(fields: [userId], references: [id])
+
+  workspaceId String
+  workspace   Workspace @relation(fields: [workspaceId], references: [id])
 }
