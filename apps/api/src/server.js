@@ -6,6 +6,7 @@ import { prisma } from "./config/db.js";
 import authRoutes from "./routes/auth.routes.js";
 import workspaceRoutes from "./routes/workspace.routes.js";
 import goalsRoutes from "./routes/goals.routes.js";
+import milestoneRoutes from "./routes/milestone.routes.js";
 
 dotenv.config();
 
@@ -20,6 +21,7 @@ app.use(express.json());
 app.use("/api/auth", authRoutes);
 app.use("/api/workspaces", workspaceRoutes);
 app.use("/api/goals", goalsRoutes);
+app.use("/api/milestones", milestoneRoutes);
 
 // test route
 app.get("/", (req, res) => {
