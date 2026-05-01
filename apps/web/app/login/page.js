@@ -1,10 +1,14 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { useAuthStore } from "../../store/authStore";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const router = useRouter();
+  const { fetchUser } = useAuthStore();
 
   const handleLogin = async () => {
     const res = await fetch("http://localhost:5000/api/auth/login", {
@@ -25,7 +29,8 @@ export default function LoginPage() {
     }
 
     console.log("Logged in successfully");
-    window.location.href = "/dashboard";
+    await fetchUser();
+    router.push("/dashboard");
   };
 
   return (
