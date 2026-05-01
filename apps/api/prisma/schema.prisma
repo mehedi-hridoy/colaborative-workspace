@@ -1,0 +1,51 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  name      String?
+  avatar    String?
+  createdAt DateTime @default(now())
+
+  memberships Membership[]
+}
+
+model Workspace {
+  id          String   @id @default(uuid())
+  name        String
+  description String?
+  createdAt   DateTime @default(now())
+
+  members Membership[]
+  goals   Goal[]
+}
+
+model Membership {
+  id          String   @id @default(uuid())
+  role        String   // ADMIN / MEMBER
+  userId      String
+  workspaceId String
+
+  user      User      @relation(fields: [userId], references: [id])
+  workspace Workspace @relation(fields: [workspaceId], references: [id])
+}
+
+model Goal {
+  id          String   @id @default(uuid())
+  title       String
+  description String?
+  status      String
+  dueDate     DateTime?
+  workspaceId String
+  ownerId     String
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id])
+}
