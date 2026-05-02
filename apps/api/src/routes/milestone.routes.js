@@ -1,6 +1,8 @@
 import express from "express";
 import { prisma } from "../config/db.js";
 import { protect } from "../middleware/auth.middleware.js";
+import { canAccessWorkspace, denyWorkspaceAccess } from "../utils/workspaceAccess.js";
+import { calculateGoalProgress, getGoalStatus } from "../utils/goalStatus.js";
 
 const router = express.Router();
 
@@ -13,10 +15,45 @@ router.post("/", protect, async (req, res) => {
   }
 
   try {
+    // Get goal to get workspace info
+    const goal = await prisma.goal.findUnique({
+      where: { id: goalId },
+    });
+
+    if (!goal) {
+      return res.status(404).json({ msg: "Goal not found" });
+    }
+
+    const hasAccess = await canAccessWorkspace(req.user.userId, goal.workspaceId);
+    if (!hasAccess) {
+      return denyWorkspaceAccess(res);
+    }
+
     const milestone = await prisma.milestone.create({
       data: {
         title,
         goalId,
+      },
+    });
+
+    const goalWithMilestones = await prisma.goal.findUnique({
+      where: { id: goalId },
+      include: { milestones: true },
+    });
+
+    await prisma.goal.update({
+      where: { id: goalId },
+      data: { status: getGoalStatus(goalWithMilestones) },
+    });
+
+    // Log activity for milestone creation
+    await prisma.activity.create({
+      data: {
+        type: "MILESTONE_CREATED",
+        message: `added step '${title}' to '${goal.title}'`,
+        userId: req.user.userId,
+        workspaceId: goal.workspaceId,
+        goalId: goal.id,
       },
     });
 
@@ -29,6 +66,20 @@ router.post("/", protect, async (req, res) => {
 // Get milestones by goal
 router.get("/:goalId", protect, async (req, res) => {
   try {
+    const goal = await prisma.goal.findUnique({
+      where: { id: req.params.goalId },
+      select: { workspaceId: true },
+    });
+
+    if (!goal) {
+      return res.status(404).json({ msg: "Goal not found" });
+    }
+
+    const hasAccess = await canAccessWorkspace(req.user.userId, goal.workspaceId);
+    if (!hasAccess) {
+      return denyWorkspaceAccess(res);
+    }
+
     const milestones = await prisma.milestone.findMany({
       where: { goalId: req.params.goalId },
     });
@@ -49,6 +100,15 @@ router.put("/:id", protect, async (req, res) => {
       },
     });
 
+    if (!milestone) {
+      return res.status(404).json({ msg: "Milestone not found" });
+    }
+
+    const hasAccess = await canAccessWorkspace(req.user.userId, milestone.goal.workspaceId);
+    if (!hasAccess) {
+      return denyWorkspaceAccess(res);
+    }
+
     const updated = await prisma.milestone.update({
       where: { id: req.params.id },
       data: {
@@ -56,15 +116,28 @@ router.put("/:id", protect, async (req, res) => {
       },
     });
 
+    const goalWithMilestones = await prisma.goal.findUnique({
+      where: { id: milestone.goal.id },
+      include: { milestones: true },
+    });
+
+    const status = getGoalStatus(goalWithMilestones);
+
+    await prisma.goal.update({
+      where: { id: milestone.goal.id },
+      data: { status },
+    });
+
     // Log activity
     await prisma.activity.create({
       data: {
         type: "MILESTONE_UPDATED",
-        message: `Milestone "${milestone.title}" marked as ${
-          updated.completed ? "completed" : "incomplete"
-        }`,
+        message: `updated '${milestone.goal.title}' progress to ${calculateGoalProgress(
+          goalWithMilestones.milestones
+        )}%`,
         userId: req.user.userId,
         workspaceId: milestone.goal.workspaceId,
+        goalId: milestone.goal.id,
       },
     });
 

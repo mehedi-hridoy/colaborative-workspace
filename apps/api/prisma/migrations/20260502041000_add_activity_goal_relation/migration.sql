@@ -1,0 +1,3 @@
+ALTER TABLE "Activity" ADD COLUMN "goalId" TEXT;
+
+ALTER TABLE "Activity" ADD CONSTRAINT "Activity_goalId_fkey" FOREIGN KEY ("goalId") REFERENCES "Goal"("id") ON DELETE SET NULL ON UPDATE CASCADE;

@@ -1,11 +1,69 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuthStore } from "../../store/authStore";
 import { useWorkspaceStore } from "../../store/workspaceStore";
-import {useGoalStore} from "../../store/goalStore";
+import { useGoalStore } from "../../store/goalStore";
 
+const API_URL = "http://localhost:5000/api";
+
+const statusMeta = {
+  "no-milestones": {
+    label: "Open",
+    classes: "bg-slate-100 text-slate-700 ring-slate-200",
+    bar: "bg-slate-300",
+  },
+  "not-started": {
+    label: "Open",
+    classes: "bg-slate-100 text-slate-700 ring-slate-200",
+    bar: "bg-teal-700",
+  },
+  "in-progress": {
+    label: "Open",
+    classes: "bg-slate-100 text-slate-700 ring-slate-200",
+    bar: "bg-teal-700",
+  },
+  overdue: {
+    label: "Overdue",
+    classes: "bg-red-50 text-red-700 ring-red-200",
+    bar: "bg-red-500",
+  },
+  completed: {
+    label: "Done",
+    classes: "bg-emerald-50 text-emerald-700 ring-emerald-200",
+    bar: "bg-emerald-500",
+  },
+};
+
+const isPastDue = (dueDate) => {
+  if (!dueDate) return false;
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const due = new Date(dueDate);
+  due.setHours(0, 0, 0, 0);
+
+  return due < today;
+};
+
+const calculateProgress = (milestones) => {
+  if (!milestones || milestones.length === 0) return 0;
+  const completed = milestones.filter((milestone) => milestone.completed).length;
+  return Math.round((completed / milestones.length) * 100);
+};
+
+const getGoalState = (goal) => {
+  const milestoneCount = goal.milestones?.length || 0;
+  const progress = calculateProgress(goal.milestones);
+
+  if (milestoneCount === 0) return "no-milestones";
+  if (progress === 100) return "completed";
+  if (isPastDue(goal.dueDate)) return "overdue";
+  if (progress === 0) return "not-started";
+  return "in-progress";
+};
 
 export default function Dashboard() {
   const router = useRouter();
@@ -13,19 +71,30 @@ export default function Dashboard() {
   const [description, setDescription] = useState("");
   const [creating, setCreating] = useState(false);
   const [goalTitle, setGoalTitle] = useState("");
+  const [goalDueDate, setGoalDueDate] = useState("");
   const [creatingGoal, setCreatingGoal] = useState(false);
   const [activities, setActivities] = useState([]);
+  const [milestoneInputs, setMilestoneInputs] = useState({});
+  const [creatingMilestones, setCreatingMilestones] = useState({});
+  const [updateInputs, setUpdateInputs] = useState({});
+  const [postingUpdates, setPostingUpdates] = useState({});
 
   const { user, loading, fetchUser, logout } = useAuthStore();
-  const { workspaces, setWorkspaces, addWorkspace, currentWorkspace, setCurrentWorkspace, loadWorkspace } = useWorkspaceStore();
+  const {
+    workspaces,
+    setWorkspaces,
+    addWorkspace,
+    currentWorkspace,
+    setCurrentWorkspace,
+    loadWorkspace,
+    clearWorkspace,
+  } = useWorkspaceStore();
   const { goals, setGoals, addGoal, updateGoal } = useGoalStore();
 
-  // auth check
   useEffect(() => {
     fetchUser();
   }, []);
 
-  // load saved workspace from localStorage
   useEffect(() => {
     loadWorkspace();
   }, []);
@@ -36,75 +105,131 @@ export default function Dashboard() {
     }
   }, [loading, user, router]);
 
-  // fetch workspaces
   useEffect(() => {
-    if (user) {
-      const fetchWorkspaces = async () => {
-        const res = await fetch("http://localhost:5000/api/workspaces", {
-          credentials: "include",
-        });
+    if (!user) return;
 
-        const data = await res.json();
-        setWorkspaces(data);
-      };
+    const fetchWorkspaces = async () => {
+      const res = await fetch(`${API_URL}/workspaces`, {
+        credentials: "include",
+      });
 
-      fetchWorkspaces();
-    }
+      if (!res.ok) {
+        setWorkspaces([]);
+        return;
+      }
+
+      const data = await res.json();
+      setWorkspaces(data);
+    };
+
+    fetchWorkspaces();
   }, [user]);
 
-  // fetch goals when workspace changes
   useEffect(() => {
-    if (currentWorkspace) {
-      const fetchGoals = async () => {
-        const res = await fetch(
-          `http://localhost:5000/api/goals/${currentWorkspace.id}`,
-          {
-            credentials: "include",
-          }
-        );
-
-        const data = await res.json();
-        setGoals(data);
-      };
-
-      fetchGoals();
+    if (!currentWorkspace) {
+      setGoals([]);
+      return;
     }
+
+    const fetchGoals = async () => {
+      const res = await fetch(`${API_URL}/goals/${currentWorkspace.id}`, {
+        credentials: "include",
+      });
+
+      if (!res.ok) {
+        setGoals([]);
+        setCurrentWorkspace(null);
+        return;
+      }
+
+      const data = await res.json();
+      setGoals(data);
+    };
+
+    fetchGoals();
   }, [currentWorkspace]);
 
-  // fetch activities when workspace changes
   useEffect(() => {
-    if (currentWorkspace) {
-      const fetchActivities = async () => {
-        const res = await fetch(
-          `http://localhost:5000/api/activity/${currentWorkspace.id}`,
-          {
-            credentials: "include",
-          }
-        );
-
-        const data = await res.json();
-        setActivities(data);
-      };
-
-      fetchActivities();
+    if (!currentWorkspace) {
+      return;
     }
+
+    const fetchActivities = async () => {
+      const res = await fetch(`${API_URL}/activity/${currentWorkspace.id}`, {
+        credentials: "include",
+      });
+
+      if (!res.ok) {
+        setActivities([]);
+        return;
+      }
+
+      const data = await res.json();
+      setActivities(data);
+    };
+
+    fetchActivities();
   }, [currentWorkspace]);
+
+  const stats = useMemo(() => {
+    const completed = goals.filter((goal) => getGoalState(goal) === "completed").length;
+    const overdue = goals.filter((goal) => getGoalState(goal) === "overdue").length;
+    const active = goals.filter((goal) =>
+      ["not-started", "in-progress", "no-milestones"].includes(getGoalState(goal))
+    ).length;
+    const milestones = goals.reduce((count, goal) => count + (goal.milestones?.length || 0), 0);
+
+    return [
+      { label: "Open", value: active },
+      { label: "Done", value: completed },
+      { label: "Overdue", value: overdue },
+      { label: "Steps", value: milestones },
+    ];
+  }, [goals]);
+
+  const visibleGoals = useMemo(() => {
+    const rank = {
+      overdue: 0,
+      "no-milestones": 1,
+      "not-started": 2,
+      "in-progress": 3,
+      completed: 4,
+    };
+
+    return [...goals].sort((first, second) => {
+      const stateDiff = rank[getGoalState(first)] - rank[getGoalState(second)];
+      if (stateDiff !== 0) return stateDiff;
+      return new Date(second.createdAt || 0) - new Date(first.createdAt || 0);
+    });
+  }, [goals]);
+
+  const refreshActivity = async () => {
+    if (!currentWorkspace) return;
+
+    const res = await fetch(`${API_URL}/activity/${currentWorkspace.id}`, {
+      credentials: "include",
+    });
+
+    if (res.ok) {
+      setActivities(await res.json());
+    }
+  };
 
   const handleCreateWorkspace = async () => {
-    if (!name) return alert("Name required");
+    if (!name.trim()) return alert("Name required");
 
     setCreating(true);
     try {
-      const res = await fetch("http://localhost:5000/api/workspaces", {
+      const res = await fetch(`${API_URL}/workspaces`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         credentials: "include",
         body: JSON.stringify({
-          name,
-          description,
-          color: "#0a3d33",
+          name: name.trim(),
+          description: description.trim(),
+          color: "#0f766e",
         }),
       });
 
@@ -114,6 +239,7 @@ export default function Dashboard() {
 
       const newWorkspace = await res.json();
       addWorkspace(newWorkspace);
+      setCurrentWorkspace(newWorkspace);
       setName("");
       setDescription("");
     } catch (error) {
@@ -124,18 +250,21 @@ export default function Dashboard() {
   };
 
   const handleCreateGoal = async () => {
-    if (!goalTitle || !currentWorkspace) return alert("Select workspace and enter goal title");
+    if (!goalTitle.trim() || !currentWorkspace) {
+      return alert("Select workspace and enter goal title");
+    }
 
     setCreatingGoal(true);
     try {
-      const res = await fetch("http://localhost:5000/api/goals", {
+      const res = await fetch(`${API_URL}/goals`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         credentials: "include",
         body: JSON.stringify({
-          title: goalTitle,
+          title: goalTitle.trim(),
+          dueDate: goalDueDate || null,
           workspaceId: currentWorkspace.id,
         }),
       });
@@ -147,6 +276,8 @@ export default function Dashboard() {
       const newGoal = await res.json();
       addGoal(newGoal);
       setGoalTitle("");
+      setGoalDueDate("");
+      await refreshActivity();
     } catch (error) {
       alert("Error creating goal: " + error.message);
     } finally {
@@ -154,15 +285,9 @@ export default function Dashboard() {
     }
   };
 
-  const calculateProgress = (milestones) => {
-    if (!milestones || milestones.length === 0) return 0;
-    const completed = milestones.filter((m) => m.completed).length;
-    return Math.round((completed / milestones.length) * 100);
-  };
-
   const handleToggleMilestone = async (goalId, milestoneId) => {
     try {
-      const res = await fetch(`http://localhost:5000/api/milestones/${milestoneId}`, {
+      const res = await fetch(`${API_URL}/milestones/${milestoneId}`, {
         method: "PUT",
         credentials: "include",
       });
@@ -172,235 +297,501 @@ export default function Dashboard() {
       }
 
       const updatedMilestone = await res.json();
+      const updatedGoal = goals.find((goal) => goal.id === goalId);
 
-      // Update goal's milestones array
-      const updatedGoal = goals.find((g) => g.id === goalId);
       if (updatedGoal) {
-        const updatedMilestones = updatedGoal.milestones.map((m) =>
-          m.id === milestoneId ? updatedMilestone : m
+        const updatedMilestones = updatedGoal.milestones.map((milestone) =>
+          milestone.id === milestoneId ? updatedMilestone : milestone
         );
         updateGoal(goalId, { ...updatedGoal, milestones: updatedMilestones });
       }
 
-      // Refresh activity feed
-      if (currentWorkspace) {
-        const actRes = await fetch(`http://localhost:5000/api/activity/${currentWorkspace.id}`, {
-          credentials: "include",
-        });
-        const actData = await actRes.json();
-        setActivities(actData);
-      }
+      await refreshActivity();
     } catch (error) {
       alert("Error toggling milestone: " + error.message);
     }
   };
 
+  const handleCreateMilestone = async (goalId) => {
+    const title = milestoneInputs[goalId]?.trim();
+    if (!title) {
+      alert("Milestone title cannot be empty");
+      return;
+    }
+
+    try {
+      setCreatingMilestones((current) => ({ ...current, [goalId]: true }));
+
+      const res = await fetch(`${API_URL}/milestones`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ title, goalId }),
+      });
+
+      if (!res.ok) {
+        throw new Error("Failed to create milestone");
+      }
+
+      const newMilestone = await res.json();
+      const updatedGoal = goals.find((goal) => goal.id === goalId);
+
+      if (updatedGoal) {
+        const updatedMilestones = [...(updatedGoal.milestones || []), newMilestone];
+        updateGoal(goalId, { ...updatedGoal, milestones: updatedMilestones });
+      }
+
+      setMilestoneInputs((current) => ({ ...current, [goalId]: "" }));
+      await refreshActivity();
+    } catch (error) {
+      alert("Error creating milestone: " + error.message);
+    } finally {
+      setCreatingMilestones((current) => ({ ...current, [goalId]: false }));
+    }
+  };
+
+  const handlePostGoalUpdate = async (goalId) => {
+    const message = updateInputs[goalId]?.trim();
+    if (!message) return;
+
+    try {
+      setPostingUpdates((current) => ({ ...current, [goalId]: true }));
+
+      const res = await fetch(`${API_URL}/goals/${goalId}/updates`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ message }),
+      });
+
+      if (!res.ok) {
+        throw new Error("Failed to post update");
+      }
+
+      setUpdateInputs((current) => ({ ...current, [goalId]: "" }));
+      await refreshActivity();
+    } catch (error) {
+      alert("Error posting update: " + error.message);
+    } finally {
+      setPostingUpdates((current) => ({ ...current, [goalId]: false }));
+    }
+  };
+
   const handleLogout = async () => {
     await logout();
+    clearWorkspace();
+    setGoals([]);
+    setActivities([]);
     router.push("/login");
   };
 
-  if (loading) return <div>Loading...</div>;
-  if (!user) return <div>Unauthorized. Redirecting...</div>;
+  if (loading) {
+    return (
+      <main className="flex min-h-screen items-center justify-center bg-slate-50 text-slate-700">
+        <div className="h-10 w-10 animate-spin rounded-full border-2 border-slate-200 border-t-teal-700" />
+      </main>
+    );
+  }
+
+  if (!user) {
+    return (
+      <main className="flex min-h-screen items-center justify-center bg-slate-50 text-slate-700">
+        Redirecting...
+      </main>
+    );
+  }
 
   return (
-    <div>
-      <h1>Dashboard</h1>
-
-      {/* USER INFO */}
-      <h2>User Info</h2>
-      <pre>{JSON.stringify(user, null, 2)}</pre>
-
-      {/* CREATE WORKSPACE */}
-      <h2>Create Workspace</h2>
-      <div style={{ marginBottom: "20px", padding: "10px", backgroundColor: "#f5f5f5", borderRadius: "4px" }}>
-        <input
-          placeholder="Workspace name"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          style={{ width: "100%", padding: "8px", marginBottom: "8px", borderRadius: "4px", border: "1px solid #ccc" }}
-        />
-        <input
-          placeholder="Description"
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-          style={{ width: "100%", padding: "8px", marginBottom: "8px", borderRadius: "4px", border: "1px solid #ccc" }}
-        />
-        <button
-          onClick={handleCreateWorkspace}
-          disabled={creating}
-          style={{
-            padding: "8px 16px",
-            backgroundColor: creating ? "#ccc" : "#0a3d33",
-            color: "white",
-            border: "none",
-            borderRadius: "4px",
-            cursor: creating ? "not-allowed" : "pointer",
-          }}
-        >
-          {creating ? "Creating..." : "Create"}
-        </button>
-      </div>
-
-      {/* WORKSPACES */}
-      <h2>Workspaces</h2>
-      {workspaces.length === 0 ? (
-        <p>No workspaces found</p>
-      ) : (
-        workspaces.map((ws) => (
-          <div
-            key={ws.id}
-            onClick={() => setCurrentWorkspace(ws)}
-            style={{
-              border: currentWorkspace?.id === ws.id ? "2px solid green" : "1px solid gray",
-              padding: "10px",
-              margin: "5px",
-              cursor: "pointer",
-              borderRadius: "4px",
-              backgroundColor: currentWorkspace?.id === ws.id ? "#f0f8f0" : "#f9f9f9",
-            }}
-          >
-            <h3>{ws.name}</h3>
-            <p>{ws.description}</p>
-            {currentWorkspace?.id === ws.id && <p style={{ color: "green", fontWeight: "bold" }}>✓ Active</p>}
-          </div>
-        ))
-      )}
-
-      {/* GOALS */}
-      <h2>Goals</h2>
-      {!currentWorkspace ? (
-        <p style={{ color: "#999", fontStyle: "italic" }}>Select a workspace first</p>
-      ) : (
-        <>
-          <div style={{ marginBottom: "20px", padding: "10px", backgroundColor: "#f5f5f5", borderRadius: "4px" }}>
-            <h3>Create Goal</h3>
-            <input
-              placeholder="Goal title"
-              value={goalTitle}
-              onChange={(e) => setGoalTitle(e.target.value)}
-              style={{ width: "100%", padding: "8px", marginBottom: "8px", borderRadius: "4px", border: "1px solid #ccc" }}
-            />
+    <main className="min-h-screen bg-slate-50 text-slate-950">
+      <div className="mx-auto grid min-h-screen max-w-[1500px] grid-cols-1 lg:grid-cols-[300px_1fr_340px]">
+        <aside className="border-b border-slate-200 bg-white px-5 py-5 lg:border-b-0 lg:border-r">
+          <div className="mb-7 flex items-center justify-between gap-4">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-teal-700">
+                Team Hub
+              </p>
+              <h1 className="mt-1 text-2xl font-semibold tracking-tight">Dashboard</h1>
+            </div>
             <button
-              onClick={handleCreateGoal}
-              disabled={creatingGoal}
-              style={{
-                padding: "8px 16px",
-                backgroundColor: creatingGoal ? "#ccc" : "#0a3d33",
-                color: "white",
-                border: "none",
-                borderRadius: "4px",
-                cursor: creatingGoal ? "not-allowed" : "pointer",
-              }}
+              onClick={handleLogout}
+              className="rounded-md border border-slate-200 px-3 py-2 text-sm font-medium text-slate-600 transition hover:border-red-200 hover:bg-red-50 hover:text-red-700"
             >
-              {creatingGoal ? "Adding..." : "Add Goal"}
+              Logout
             </button>
           </div>
 
-          {goals.length === 0 ? (
-            <p style={{ color: "#999", fontStyle: "italic" }}>No goals yet</p>
+          <section className="mb-6 rounded-lg border border-slate-200 bg-slate-50 p-4">
+            <div className="flex items-center gap-3">
+              <div className="flex h-11 w-11 items-center justify-center rounded-full bg-teal-700 text-sm font-semibold text-white">
+                {(user.name || user.email || "U").slice(0, 2).toUpperCase()}
+              </div>
+              <div className="min-w-0">
+                <p className="truncate text-sm font-semibold">{user.name || "Workspace member"}</p>
+                <p className="truncate text-xs text-slate-500">{user.email}</p>
+              </div>
+            </div>
+          </section>
+
+          <section className="mb-6">
+            <div className="mb-3 flex items-center justify-between">
+              <h2 className="text-sm font-semibold text-slate-900">Workspaces</h2>
+              <span className="rounded-full bg-slate-100 px-2 py-1 text-xs font-medium text-slate-500">
+                {workspaces.length}
+              </span>
+            </div>
+
+            <div className="space-y-2">
+              {workspaces.length === 0 ? (
+                <p className="rounded-md border border-dashed border-slate-300 px-3 py-4 text-sm text-slate-500">
+                  No workspaces yet
+                </p>
+              ) : (
+                workspaces.map((workspace) => {
+                  const active = currentWorkspace?.id === workspace.id;
+
+                  return (
+                    <button
+                      key={workspace.id}
+                      onClick={() => setCurrentWorkspace(workspace)}
+                      className={`w-full rounded-md border px-3 py-3 text-left transition ${
+                        active
+                          ? "border-teal-600 bg-teal-50 shadow-sm"
+                          : "border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50"
+                      }`}
+                    >
+                      <div className="flex items-center gap-3">
+                        <span
+                          className="h-3 w-3 rounded-full"
+                          style={{ backgroundColor: workspace.color || "#0f766e" }}
+                        />
+                        <span className="min-w-0">
+                          <span className="block truncate text-sm font-semibold text-slate-900">
+                            {workspace.name}
+                          </span>
+                          {workspace.description && (
+                            <span className="block truncate text-xs text-slate-500">
+                              {workspace.description}
+                            </span>
+                          )}
+                        </span>
+                      </div>
+                    </button>
+                  );
+                })
+              )}
+            </div>
+          </section>
+
+          <section>
+            <h2 className="mb-3 text-sm font-semibold text-slate-900">Create Workspace</h2>
+            <div className="space-y-3">
+              <input
+                placeholder="Workspace name"
+                value={name}
+                onChange={(event) => setName(event.target.value)}
+                className="w-full rounded-md border border-slate-200 bg-white px-3 py-2.5 text-sm outline-none transition placeholder:text-slate-400 focus:border-teal-600 focus:ring-4 focus:ring-teal-100"
+              />
+              <textarea
+                placeholder="Description"
+                value={description}
+                onChange={(event) => setDescription(event.target.value)}
+                rows={3}
+                className="w-full resize-none rounded-md border border-slate-200 bg-white px-3 py-2.5 text-sm outline-none transition placeholder:text-slate-400 focus:border-teal-600 focus:ring-4 focus:ring-teal-100"
+              />
+              <button
+                onClick={handleCreateWorkspace}
+                disabled={creating}
+                className="w-full rounded-md bg-teal-700 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-teal-800 disabled:cursor-not-allowed disabled:bg-slate-300"
+              >
+                {creating ? "Creating..." : "Create Workspace"}
+              </button>
+            </div>
+          </section>
+        </aside>
+
+        <section className="px-5 py-5 sm:px-7 lg:px-8">
+          <div className="mb-6 flex flex-col justify-between gap-4 border-b border-slate-200 pb-5 sm:flex-row sm:items-end">
+            <div>
+              <p className="text-sm font-medium text-slate-500">
+                {currentWorkspace ? "Current workspace" : "No workspace selected"}
+              </p>
+              <h2 className="mt-1 text-3xl font-semibold tracking-tight">
+                {currentWorkspace?.name || "Select a workspace"}
+              </h2>
+              {currentWorkspace?.description && (
+                <p className="mt-2 max-w-2xl text-sm text-slate-500">
+                  {currentWorkspace.description}
+                </p>
+              )}
+            </div>
+          </div>
+
+          <div className="mb-6 grid grid-cols-2 gap-3 xl:grid-cols-4">
+            {stats.map((item) => (
+              <div key={item.label} className="rounded-lg border border-slate-200 bg-white p-4">
+                <p className="text-2xl font-semibold">{item.value}</p>
+                <p className="mt-1 text-sm font-medium text-slate-500">{item.label}</p>
+              </div>
+            ))}
+          </div>
+
+          <section className="mb-6 rounded-lg border border-slate-200 bg-white p-4">
+            <div className="mb-4 flex flex-col gap-1">
+              <h3 className="text-base font-semibold">New Goal</h3>
+            </div>
+            <div className="grid gap-3 md:grid-cols-[1fr_190px_auto]">
+              <input
+                placeholder={currentWorkspace ? "Goal title" : "Select a workspace first"}
+                value={goalTitle}
+                onChange={(event) => setGoalTitle(event.target.value)}
+                disabled={!currentWorkspace}
+                className="rounded-md border border-slate-200 bg-white px-3 py-2.5 text-sm outline-none transition placeholder:text-slate-400 focus:border-teal-600 focus:ring-4 focus:ring-teal-100 disabled:bg-slate-100"
+              />
+              <input
+                type="date"
+                value={goalDueDate}
+                onChange={(event) => setGoalDueDate(event.target.value)}
+                disabled={!currentWorkspace}
+                className="rounded-md border border-slate-200 bg-white px-3 py-2.5 text-sm outline-none transition focus:border-teal-600 focus:ring-4 focus:ring-teal-100 disabled:bg-slate-100"
+              />
+              <button
+                onClick={handleCreateGoal}
+                disabled={!currentWorkspace || creatingGoal}
+                className="rounded-md bg-teal-700 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-teal-800 disabled:cursor-not-allowed disabled:bg-slate-300"
+              >
+                {creatingGoal ? "Adding..." : "Add Goal"}
+              </button>
+            </div>
+          </section>
+
+          {!currentWorkspace ? (
+            <div className="rounded-lg border border-dashed border-slate-300 bg-white px-6 py-12 text-center">
+              <h3 className="text-lg font-semibold">Choose a workspace to begin</h3>
+              <p className="mx-auto mt-2 max-w-md text-sm text-slate-500">
+                Goals and milestones are scoped to the workspace you select.
+              </p>
+            </div>
+          ) : goals.length === 0 ? (
+            <div className="rounded-lg border border-dashed border-slate-300 bg-white px-6 py-12 text-center">
+              <h3 className="text-lg font-semibold">No goals yet</h3>
+              <p className="mx-auto mt-2 max-w-md text-sm text-slate-500">
+                Create the first shared goal for this workspace.
+              </p>
+            </div>
           ) : (
-            goals.map((goal) => {
-              const progress = calculateProgress(goal.milestones);
-              return (
-                <div
-                  key={goal.id}
-                  style={{
-                    padding: "15px",
-                    margin: "10px 0",
-                    border: "1px solid #ddd",
-                    borderRadius: "4px",
-                    backgroundColor: "#fafafa",
-                  }}
-                >
-                  <h3 style={{ color: "#000", margin: "0 0 8px 0" }}>{goal.title}</h3>
-                  <p style={{ color: "#333", margin: "5px 0" }}>Status: <strong style={{ color: "#000" }}>{goal.status}</strong></p>
+            <div className="space-y-4">
+              <div className="flex flex-col justify-between gap-2 sm:flex-row sm:items-end">
+                <div>
+                  <h3 className="text-base font-semibold">Goals</h3>
+                </div>
+                <p className="text-sm text-slate-500">{goals.length} total</p>
+              </div>
 
-                  {/* Progress Bar */}
-                  <div style={{ marginBottom: "10px" }}>
-                    <p style={{ fontSize: "14px", marginBottom: "5px", color: "#333" }}>
-                      Progress: <strong style={{ color: "#000" }}>{progress}%</strong> <span style={{ color: "#666" }}>({goal.milestones?.filter((m) => m.completed).length || 0}/{goal.milestones?.length || 0})</span>
-                    </p>
-                    <div style={{ background: "#e0e0e0", height: "12px", width: "100%", borderRadius: "4px", overflow: "hidden" }}>
-                      <div
-                        style={{
-                          width: `${progress}%`,
-                          background: progress === 100 ? "#4caf50" : "#0a3d33",
-                          height: "100%",
-                          transition: "width 0.3s ease",
-                        }}
-                      />
+              {visibleGoals.map((goal) => {
+                const progress = calculateProgress(goal.milestones);
+                const state = getGoalState(goal);
+                const meta = statusMeta[state];
+                const milestoneCount = goal.milestones?.length || 0;
+                const completedMilestones =
+                  goal.milestones?.filter((milestone) => milestone.completed).length || 0;
+                const dueDateLabel = goal.dueDate
+                  ? new Date(goal.dueDate).toLocaleDateString()
+                  : "No due date";
+                const goalActivities = activities
+                  .filter((activity) => activity.goalId === goal.id)
+                  .slice(0, 3);
+
+                return (
+                  <article
+                    key={goal.id}
+                    className={`rounded-lg border bg-white p-5 shadow-sm ${
+                      state === "overdue" ? "border-red-200" : "border-slate-200"
+                    }`}
+                  >
+                    <div className="mb-4 flex flex-col justify-between gap-3 sm:flex-row sm:items-start">
+                      <div className="min-w-0">
+                        <h3 className="truncate text-lg font-semibold">{goal.title}</h3>
+                        <div className="mt-3 flex flex-wrap items-center gap-2 text-xs">
+                          {goal.owner?.name && (
+                            <span className="rounded-full bg-slate-100 px-2.5 py-1 font-medium text-slate-600">
+                              {goal.owner.name}
+                            </span>
+                          )}
+                          {goal.dueDate && (
+                            <span
+                              className={`rounded-full px-2.5 py-1 font-medium ${
+                                state === "overdue"
+                                  ? "bg-red-50 text-red-700"
+                                  : "bg-slate-100 text-slate-600"
+                              }`}
+                            >
+                              {dueDateLabel}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                      <span
+                        className={`w-fit rounded-full px-3 py-1 text-xs font-semibold ring-1 ${meta.classes}`}
+                      >
+                        {meta.label}
+                      </span>
                     </div>
-                  </div>
 
-                  {/* Milestones */}
-                  {goal.milestones && goal.milestones.length > 0 && (
-                    <div style={{ marginTop: "10px", paddingTop: "10px", borderTop: "1px solid #e0e0e0" }}>
-                      <p style={{ fontSize: "13px", fontWeight: "bold", marginBottom: "8px", color: "#000" }}>Milestones:</p>
-                      {goal.milestones.map((milestone) => (
-                        <div
-                          key={milestone.id}
-                          style={{
-                            display: "flex",
-                            alignItems: "center",
-                            padding: "6px",
-                            marginBottom: "5px",
-                            backgroundColor: "#fff",
-                            border: "1px solid #f0f0f0",
-                            borderRadius: "3px",
-                            fontSize: "13px",
-                          }}
-                        >
-                          <input
-                            type="checkbox"
-                            checked={milestone.completed}
-                            onChange={() => handleToggleMilestone(goal.id, milestone.id)}
-                            style={{ marginRight: "10px", cursor: "pointer" }}
-                          />
-                          <span style={{ textDecoration: milestone.completed ? "line-through" : "none", color: milestone.completed ? "#999" : "#000" }}>
-                            {milestone.title}
+                    {milestoneCount > 0 && (
+                      <div className="mb-5">
+                        <div className="mb-2 flex items-center justify-between text-sm">
+                          <span className="font-medium text-slate-600">Progress</span>
+                          <span className="font-semibold">
+                            {completedMilestones}/{milestoneCount}
                           </span>
                         </div>
-                      ))}
+                        <div className="h-2.5 overflow-hidden rounded-full bg-slate-100">
+                          <div
+                            className={`h-full rounded-full transition-all ${meta.bar}`}
+                            style={{ width: `${progress}%` }}
+                          />
+                        </div>
+                      </div>
+                    )}
+
+                    {milestoneCount > 0 && (
+                      <div className="space-y-2">
+                        {goal.milestones?.map((milestone) => (
+                          <label
+                            key={milestone.id}
+                            className="flex items-center gap-3 rounded-md border border-slate-100 bg-slate-50 px-3 py-2 text-sm"
+                          >
+                            <input
+                              type="checkbox"
+                              checked={milestone.completed}
+                              onChange={() => handleToggleMilestone(goal.id, milestone.id)}
+                              className="h-4 w-4 rounded border-slate-300 accent-teal-700"
+                            />
+                            <span
+                              className={
+                                milestone.completed
+                                  ? "text-slate-400 line-through"
+                                  : "text-slate-700"
+                              }
+                            >
+                              {milestone.title}
+                            </span>
+                          </label>
+                        ))}
+                      </div>
+                    )}
+
+                    <div className="mt-4 flex flex-col gap-2 sm:flex-row">
+                      <input
+                        type="text"
+                        placeholder="Add step"
+                        value={milestoneInputs[goal.id] || ""}
+                        onChange={(event) =>
+                          setMilestoneInputs((current) => ({
+                            ...current,
+                            [goal.id]: event.target.value,
+                          }))
+                        }
+                        onKeyDown={(event) => {
+                          if (event.key === "Enter") {
+                            handleCreateMilestone(goal.id);
+                          }
+                        }}
+                        className="min-w-0 flex-1 rounded-md border border-slate-200 bg-white px-3 py-2.5 text-sm outline-none transition placeholder:text-slate-400 focus:border-teal-600 focus:ring-4 focus:ring-teal-100"
+                      />
+                      <button
+                        onClick={() => handleCreateMilestone(goal.id)}
+                        disabled={creatingMilestones[goal.id]}
+                        className="rounded-md border border-slate-200 px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:border-teal-200 hover:bg-teal-50 hover:text-teal-800 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-400"
+                      >
+                        {creatingMilestones[goal.id] ? "Adding..." : "Add Step"}
+                      </button>
                     </div>
-                  )}
-                </div>
-              );
-            })
-          )}
-        </>
-      )}
 
-      {/* ACTIVITY FEED */}
-      <h2 style={{ marginTop: "30px", color: "#000" }}>Activity Feed</h2>
-      {!currentWorkspace ? (
-        <p style={{ color: "#999", fontStyle: "italic" }}>Select a workspace to see activities</p>
-      ) : activities.length === 0 ? (
-        <p style={{ color: "#999", fontStyle: "italic" }}>No activities yet</p>
-      ) : (
-        <div style={{ backgroundColor: "#f9f9f9", borderRadius: "4px", maxHeight: "400px", overflowY: "auto" }}>
-          {activities.map((activity) => (
-            <div
-              key={activity.id}
-              style={{
-                borderBottom: "1px solid #e0e0e0",
-                padding: "12px",
-                fontSize: "14px",
-                color: "#333",
-              }}
-            >
-              <p style={{ margin: "0 0 5px 0", color: "#000" }}>
-                <strong>{activity.user?.name || "User"}</strong> {activity.message}
-              </p>
-              <small style={{ color: "#999" }}>
-                {new Date(activity.createdAt).toLocaleString()}
-              </small>
+                    <div className="mt-3 flex flex-col gap-2 border-t border-slate-100 pt-3 sm:flex-row">
+                      <input
+                        type="text"
+                        placeholder="Post progress update"
+                        value={updateInputs[goal.id] || ""}
+                        onChange={(event) =>
+                          setUpdateInputs((current) => ({
+                            ...current,
+                            [goal.id]: event.target.value,
+                          }))
+                        }
+                        onKeyDown={(event) => {
+                          if (event.key === "Enter") {
+                            handlePostGoalUpdate(goal.id);
+                          }
+                        }}
+                        className="min-w-0 flex-1 rounded-md border border-slate-200 bg-white px-3 py-2.5 text-sm outline-none transition placeholder:text-slate-400 focus:border-teal-600 focus:ring-4 focus:ring-teal-100"
+                      />
+                      <button
+                        onClick={() => handlePostGoalUpdate(goal.id)}
+                        disabled={postingUpdates[goal.id]}
+                        className="rounded-md border border-slate-200 px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:border-teal-200 hover:bg-teal-50 hover:text-teal-800 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-400"
+                      >
+                        {postingUpdates[goal.id] ? "Posting..." : "Post"}
+                      </button>
+                    </div>
+
+                    {goalActivities.length > 0 && (
+                      <div className="mt-3 space-y-2">
+                        {goalActivities.map((activity) => (
+                          <p
+                            key={activity.id}
+                            className="rounded-md bg-slate-50 px-3 py-2 text-xs text-slate-500"
+                          >
+                            <span className="font-semibold text-slate-700">
+                              {activity.user?.name || "User"}
+                            </span>{" "}
+                            {activity.message}
+                          </p>
+                        ))}
+                      </div>
+                    )}
+                  </article>
+                );
+              })}
             </div>
-          ))}
-        </div>
-      )}
+          )}
+        </section>
 
-      <button onClick={handleLogout} style={{ marginTop: "20px", padding: "8px 16px", backgroundColor: "#d32f2f", color: "white", border: "none", borderRadius: "4px", cursor: "pointer" }}>Logout</button>
-    </div>
+        <aside className="border-t border-slate-200 bg-white px-5 py-5 lg:border-l lg:border-t-0">
+          <div className="mb-4 flex items-center justify-between">
+            <h2 className="text-base font-semibold">Activity</h2>
+            <span className="rounded-full bg-slate-100 px-2 py-1 text-xs font-medium text-slate-500">
+              {activities.length}
+            </span>
+          </div>
+
+          {!currentWorkspace ? (
+            <p className="rounded-md border border-dashed border-slate-300 px-3 py-4 text-sm text-slate-500">
+              Select a workspace to see activity.
+            </p>
+          ) : activities.length === 0 ? (
+            <p className="rounded-md border border-dashed border-slate-300 px-3 py-4 text-sm text-slate-500">
+              No activity yet.
+            </p>
+          ) : (
+            <div className="space-y-3">
+              {activities.map((activity) => (
+                <div key={activity.id} className="rounded-lg border border-slate-200 p-3">
+                  <p className="text-sm leading-5 text-slate-700">
+                    <span className="font-semibold text-slate-950">
+                      {activity.user?.name || "User"}
+                    </span>{" "}
+                    {activity.message}
+                  </p>
+                  <p className="mt-2 text-xs text-slate-400">
+                    {new Date(activity.createdAt).toLocaleString()}
+                  </p>
+                </div>
+              ))}
+            </div>
+          )}
+        </aside>
+      </div>
+    </main>
   );
 }

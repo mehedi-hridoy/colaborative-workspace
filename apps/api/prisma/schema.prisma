@@ -60,6 +60,7 @@ model Goal {
   owner     User      @relation(fields: [ownerId], references: [id])
 
   milestones Milestone[]
+  activities Activity[]
 }
 
 model Milestone {
@@ -83,4 +84,7 @@ model Activity {
 
   workspaceId String
   workspace   Workspace @relation(fields: [workspaceId], references: [id])
+
+  goalId String?
+  goal   Goal? @relation(fields: [goalId], references: [id])
 }

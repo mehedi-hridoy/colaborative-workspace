@@ -2,6 +2,7 @@
   "name": "collaborative-workspace",
   "private": true,
   "version": "1.0.0",
+  "packageManager": "npm@10.9.7",
   "workspaces": [
     "apps/*",
     "packages/*"
