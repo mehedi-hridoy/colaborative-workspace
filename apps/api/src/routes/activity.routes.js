@@ -2,10 +2,27 @@ import express from "express";
 import { prisma } from "../config/db.js";
 import { protect } from "../middleware/auth.middleware.js";
 import { canAccessWorkspace, denyWorkspaceAccess } from "../utils/workspaceAccess.js";
+import {
+  createProgressUpdate,
+  getGoalActivityFeed,
+} from "../controllers/activity.controller.js";
 
 const router = express.Router();
 
-// Get activities for workspace
+// ──────────────────────────────────────────────
+// POST /api/activity — create a progress update
+// ──────────────────────────────────────────────
+router.post("/", protect, createProgressUpdate);
+
+// ──────────────────────────────────────────────
+// GET /api/activity/goal/:goalId — activity feed per goal
+// ──────────────────────────────────────────────
+router.get("/goal/:goalId", protect, getGoalActivityFeed);
+
+// ──────────────────────────────────────────────
+// GET /api/activity/:workspaceId — activities for a workspace
+// (existing route — preserved)
+// ──────────────────────────────────────────────
 router.get("/:workspaceId", protect, async (req, res) => {
   try {
     const hasAccess = await canAccessWorkspace(req.user.userId, req.params.workspaceId);

@@ -18,6 +18,7 @@ export const useAuthStore = create((set) => ({
 
       set({ user: data.user, loading: false });
     } catch {
+      localStorage.removeItem("workspace");
       set({ user: null, loading: false });
     }
   },
@@ -28,6 +29,7 @@ export const useAuthStore = create((set) => ({
       credentials: "include",
     });
 
+    localStorage.removeItem("workspace");
     set({ user: null });
   },
 }));

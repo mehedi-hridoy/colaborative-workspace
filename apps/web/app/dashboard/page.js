@@ -5,6 +5,10 @@ import { useRouter } from "next/navigation";
 import { useAuthStore } from "../../store/authStore";
 import { useWorkspaceStore } from "../../store/workspaceStore";
 import { useGoalStore } from "../../store/goalStore";
+import PostUpdate from "../components/PostUpdate";
+import ActivityFeed from "../components/ActivityFeed";
+import AnnouncementFeed from "../components/AnnouncementFeed";
+import { getSocket } from "../lib/socket";
 
 const API_URL = "http://localhost:5000/api";
 
@@ -76,8 +80,7 @@ export default function Dashboard() {
   const [activities, setActivities] = useState([]);
   const [milestoneInputs, setMilestoneInputs] = useState({});
   const [creatingMilestones, setCreatingMilestones] = useState({});
-  const [updateInputs, setUpdateInputs] = useState({});
-  const [postingUpdates, setPostingUpdates] = useState({});
+
 
   const { user, loading, fetchUser, logout } = useAuthStore();
   const {
@@ -170,6 +173,17 @@ export default function Dashboard() {
 
     fetchActivities();
   }, [currentWorkspace]);
+
+  useEffect(() => {
+    if (!currentWorkspace?.id) return;
+
+    const socket = getSocket();
+    socket.emit("join_workspace", currentWorkspace.id);
+
+    return () => {
+      socket.emit("leave_workspace", currentWorkspace.id);
+    };
+  }, [currentWorkspace?.id]);
 
   const stats = useMemo(() => {
     const completed = goals.filter((goal) => getGoalState(goal) === "completed").length;
@@ -350,32 +364,7 @@ export default function Dashboard() {
     }
   };
 
-  const handlePostGoalUpdate = async (goalId) => {
-    const message = updateInputs[goalId]?.trim();
-    if (!message) return;
 
-    try {
-      setPostingUpdates((current) => ({ ...current, [goalId]: true }));
-
-      const res = await fetch(`${API_URL}/goals/${goalId}/updates`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({ message }),
-      });
-
-      if (!res.ok) {
-        throw new Error("Failed to post update");
-      }
-
-      setUpdateInputs((current) => ({ ...current, [goalId]: "" }));
-      await refreshActivity();
-    } catch (error) {
-      alert("Error posting update: " + error.message);
-    } finally {
-      setPostingUpdates((current) => ({ ...current, [goalId]: false }));
-    }
-  };
 
   const handleLogout = async () => {
     await logout();
@@ -597,9 +586,6 @@ export default function Dashboard() {
                 const dueDateLabel = goal.dueDate
                   ? new Date(goal.dueDate).toLocaleDateString()
                   : "No due date";
-                const goalActivities = activities
-                  .filter((activity) => activity.goalId === goal.id)
-                  .slice(0, 3);
 
                 return (
                   <article
@@ -708,48 +694,9 @@ export default function Dashboard() {
                       </button>
                     </div>
 
-                    <div className="mt-3 flex flex-col gap-2 border-t border-slate-100 pt-3 sm:flex-row">
-                      <input
-                        type="text"
-                        placeholder="Post progress update"
-                        value={updateInputs[goal.id] || ""}
-                        onChange={(event) =>
-                          setUpdateInputs((current) => ({
-                            ...current,
-                            [goal.id]: event.target.value,
-                          }))
-                        }
-                        onKeyDown={(event) => {
-                          if (event.key === "Enter") {
-                            handlePostGoalUpdate(goal.id);
-                          }
-                        }}
-                        className="min-w-0 flex-1 rounded-md border border-slate-200 bg-white px-3 py-2.5 text-sm outline-none transition placeholder:text-slate-400 focus:border-teal-600 focus:ring-4 focus:ring-teal-100"
-                      />
-                      <button
-                        onClick={() => handlePostGoalUpdate(goal.id)}
-                        disabled={postingUpdates[goal.id]}
-                        className="rounded-md border border-slate-200 px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:border-teal-200 hover:bg-teal-50 hover:text-teal-800 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-400"
-                      >
-                        {postingUpdates[goal.id] ? "Posting..." : "Post"}
-                      </button>
-                    </div>
+                    <PostUpdate goalId={goal.id} onPostSuccess={refreshActivity} />
 
-                    {goalActivities.length > 0 && (
-                      <div className="mt-3 space-y-2">
-                        {goalActivities.map((activity) => (
-                          <p
-                            key={activity.id}
-                            className="rounded-md bg-slate-50 px-3 py-2 text-xs text-slate-500"
-                          >
-                            <span className="font-semibold text-slate-700">
-                              {activity.user?.name || "User"}
-                            </span>{" "}
-                            {activity.message}
-                          </p>
-                        ))}
-                      </div>
-                    )}
+                    <ActivityFeed goalId={goal.id} />
                   </article>
                 );
               })}
@@ -757,7 +704,25 @@ export default function Dashboard() {
           )}
         </section>
 
-        <aside className="border-t border-slate-200 bg-white px-5 py-5 lg:border-l lg:border-t-0">
+        <aside className="border-t border-slate-200 bg-white px-5 py-5 lg:border-l lg:border-t-0 lg:overflow-y-auto lg:max-h-screen">
+          {/* Announcements */}
+          {currentWorkspace ? (
+            <div className="mb-6">
+              <AnnouncementFeed workspaceId={currentWorkspace.id} />
+            </div>
+          ) : (
+            <div className="mb-6">
+              <h2 className="mb-3 text-base font-semibold">Announcements</h2>
+              <p className="rounded-md border border-dashed border-slate-300 px-3 py-4 text-sm text-slate-500">
+                Select a workspace to see announcements.
+              </p>
+            </div>
+          )}
+
+          {/* Divider */}
+          <div className="mb-5 border-t border-slate-200" />
+
+          {/* Activity */}
           <div className="mb-4 flex items-center justify-between">
             <h2 className="text-base font-semibold">Activity</h2>
             <span className="rounded-full bg-slate-100 px-2 py-1 text-xs font-medium text-slate-500">

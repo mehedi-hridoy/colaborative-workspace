@@ -15,10 +15,13 @@ model User {
   avatar    String?
   createdAt DateTime @default(now())
 
-  memberships Membership[]
-  workspaces  Workspace[] @relation("workspace_owner")
-  goals       Goal[]
-  activities  Activity[]
+  memberships   Membership[]
+  workspaces    Workspace[]    @relation("workspace_owner")
+  goals         Goal[]
+  activities    Activity[]
+  announcements Announcement[]
+  reactions     Reaction[]
+  comments      Comment[]
 }
 
 model Workspace {
@@ -31,9 +34,10 @@ model Workspace {
   ownerId String        
   owner   User @relation("workspace_owner", fields: [ownerId], references: [id])
 
-  members    Membership[]
-  goals      Goal[]
-  activities Activity[]
+  members       Membership[]
+  goals         Goal[]
+  activities    Activity[]
+  announcements Announcement[]
 }
 
 model Membership {
@@ -87,4 +91,44 @@ model Activity {
 
   goalId String?
   goal   Goal? @relation(fields: [goalId], references: [id])
+}
+
+model Announcement {
+  id        String   @id @default(uuid())
+  content   String
+  createdAt DateTime @default(now())
+  isPinned  Boolean  @default(false)
+
+  userId      String
+  workspaceId String
+
+  user      User      @relation(fields: [userId], references: [id])
+  workspace Workspace @relation(fields: [workspaceId], references: [id])
+
+  reactions Reaction[]
+  comments  Comment[]
+}
+
+model Reaction {
+  id             String @id @default(uuid())
+  emoji          String
+  userId         String
+  announcementId String
+
+  user         User         @relation(fields: [userId], references: [id])
+  announcement Announcement @relation(fields: [announcementId], references: [id])
+
+  @@unique([userId, announcementId, emoji])
+}
+
+model Comment {
+  id             String   @id @default(uuid())
+  message        String
+  createdAt      DateTime @default(now())
+
+  userId         String
+  announcementId String
+
+  user         User         @relation(fields: [userId], references: [id])
+  announcement Announcement @relation(fields: [announcementId], references: [id])
 }

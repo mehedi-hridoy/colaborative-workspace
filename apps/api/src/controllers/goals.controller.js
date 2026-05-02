@@ -1,6 +1,7 @@
 import { prisma } from "../config/db.js";
 import { canAccessWorkspace, denyWorkspaceAccess } from "../utils/workspaceAccess.js";
 import { getGoalStatus } from "../utils/goalStatus.js";
+import { ACTIVITY_TYPES } from "../utils/activityTypes.js";
 
 export const getGoals = async (req, res) => {
   try {
@@ -61,7 +62,7 @@ export const createGoal = async (req, res) => {
     // Log activity for goal creation
     await prisma.activity.create({
       data: {
-        type: "GOAL_CREATED",
+        type: ACTIVITY_TYPES.GOAL_CREATED,
         message: `created goal '${title}'`,
         userId: req.user.id,
         workspaceId,
@@ -100,7 +101,7 @@ export const postGoalUpdate = async (req, res) => {
 
     const activity = await prisma.activity.create({
       data: {
-        type: "GOAL_PROGRESS_UPDATE",
+        type: ACTIVITY_TYPES.PROGRESS_UPDATE,
         message: `posted on '${goal.title}': ${message.trim()}`,
         userId: req.user.id,
         workspaceId: goal.workspaceId,
