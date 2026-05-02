@@ -9,7 +9,9 @@ import PostUpdate from "../components/PostUpdate";
 import ActivityFeed from "../components/ActivityFeed";
 import AnnouncementFeed from "../components/AnnouncementFeed";
 import AnnouncementInput from "../components/AnnouncementInput";
+import NotificationBell from "../components/NotificationBell";
 import { getSocket } from "../lib/socket";
+import { useNotificationStore } from "../store/notificationStore";
 
 const API_URL = "http://localhost:5000/api";
 
@@ -105,6 +107,12 @@ export default function Dashboard() {
     clearWorkspace,
   } = useWorkspaceStore();
   const { goals, setGoals, addGoal, updateGoal } = useGoalStore();
+  const {
+    fetchNotifications,
+    listenSocket: listenNotificationSocket,
+    cleanupSocket: cleanupNotificationSocket,
+    reset: resetNotifications,
+  } = useNotificationStore();
 
   const isAdmin =
     Boolean(currentWorkspace?.role === "ADMIN") ||
@@ -127,6 +135,9 @@ export default function Dashboard() {
   useEffect(() => {
     if (!user) return;
     refreshWorkspaces();
+    fetchNotifications();
+    listenNotificationSocket();
+    return () => cleanupNotificationSocket();
   }, [user]);
 
   useEffect(() => {
@@ -461,6 +472,8 @@ export default function Dashboard() {
 
 
   const handleLogout = async () => {
+    cleanupNotificationSocket();
+    resetNotifications();
     await logout();
     clearWorkspace();
     setGoals([]);
@@ -495,12 +508,15 @@ export default function Dashboard() {
               </p>
               <h1 className="mt-1 text-2xl font-semibold tracking-tight">Dashboard</h1>
             </div>
-            <button
-              onClick={handleLogout}
-              className="rounded-md border border-slate-200 px-3 py-2 text-sm font-medium text-slate-600 transition hover:border-red-200 hover:bg-red-50 hover:text-red-700"
-            >
-              Logout
-            </button>
+            <div className="flex items-center gap-2">
+              <NotificationBell />
+              <button
+                onClick={handleLogout}
+                className="rounded-md border border-slate-200 px-3 py-2 text-sm font-medium text-slate-600 transition hover:border-red-200 hover:bg-red-50 hover:text-red-700"
+              >
+                Logout
+              </button>
+            </div>
           </div>
 
           <section className="mb-6 rounded-lg border border-slate-200 bg-slate-50 p-4">

@@ -45,6 +45,12 @@ export const initSocket = (server) => {
   io.on("connection", (socket) => {
     console.log("🔌 Socket connected:", socket.id);
 
+    // --- Auto-join the user's personal room for notifications ---
+    const connectedUserId = getUserIdFromSocket(socket);
+    if (connectedUserId) {
+      socket.join(`user_${connectedUserId}`);
+      console.log(`🔔 ${socket.id} joined user_${connectedUserId}`);
+    }
     // --- Join a workspace room ---
     socket.on("join_workspace", async (workspaceId) => {
       if (!workspaceId) return;

@@ -22,6 +22,8 @@ model User {
   announcements Announcement[]
   reactions     Reaction[]
   comments      Comment[]
+  notifications Notification[] @relation("UserNotifications")
+  actions       Notification[] @relation("ActorNotifications")
 }
 
 model Workspace {
@@ -132,4 +134,21 @@ model Comment {
 
   user         User         @relation(fields: [userId], references: [id])
   announcement Announcement @relation(fields: [announcementId], references: [id])
+}
+
+model Notification {
+  id          String   @id @default(uuid())
+  type        String
+  message     String
+  isRead      Boolean  @default(false)
+  createdAt   DateTime @default(now())
+
+  userId      String
+  actorId     String
+
+  workspaceId String
+  goalId      String?
+
+  user  User @relation("UserNotifications", fields: [userId], references: [id])
+  actor User @relation("ActorNotifications", fields: [actorId], references: [id])
 }

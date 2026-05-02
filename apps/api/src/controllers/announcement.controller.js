@@ -1,6 +1,7 @@
 import { prisma } from "../config/db.js";
 import { getIO } from "../socket/index.js";
 import { canAccessWorkspace, denyWorkspaceAccess } from "../utils/workspaceAccess.js";
+import { createNotification } from "../services/notification.service.js";
 
 // --- Shared include shape for consistent responses ---
 const announcementInclude = {
@@ -52,6 +53,40 @@ export const createAnnouncement = async (req, res) => {
       io.to(`workspace_${workspaceId}`).emit("announcement:new", announcement);
     } catch {}
 
+    // --- Mention notifications (@word) ---
+    try {
+      const mentionMatches = content.match(/@(\w+)/g) || [];
+      const mentionHandles = [...new Set(mentionMatches.map((m) => m.slice(1).toLowerCase()))];
+
+      if (mentionHandles.length > 0) {
+        // Fetch all workspace members then filter by startsWith in JS
+        // (Prisma doesn't support case-insensitive startsWith across all DBs cleanly)
+        const members = await prisma.user.findMany({
+          where: { memberships: { some: { workspaceId } } },
+          select: { id: true, name: true, email: true },
+        });
+
+        const mentionedUsers = members.filter((u) => {
+          const nameLower = (u.name || u.email || "").toLowerCase();
+          return mentionHandles.some(
+            (handle) => nameLower === handle || nameLower.startsWith(handle)
+          );
+        });
+
+        await Promise.all(
+          mentionedUsers.map((mentionedUser) =>
+            createNotification({
+              type: "MENTION",
+              message: `mentioned you in an announcement`,
+              userId: mentionedUser.id,
+              actorId: req.user.userId,
+              workspaceId,
+            })
+          )
+        );
+      }
+    } catch {}
+
     res.status(201).json(announcement);
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -94,7 +129,7 @@ export const addReaction = async (req, res) => {
 
     const announcement = await prisma.announcement.findUnique({
       where: { id },
-      select: { id: true, workspaceId: true },
+      select: { id: true, userId: true, workspaceId: true },
     });
 
     if (!announcement) {
@@ -139,6 +174,19 @@ export const addReaction = async (req, res) => {
       });
     } catch {}
 
+    // --- Reaction notification (only when adding, not removing) ---
+    if (!existing) {
+      try {
+        await createNotification({
+          type: "REACTION",
+          message: `reacted ${emoji} to your announcement`,
+          userId: announcement.userId,
+          actorId: req.user.userId,
+          workspaceId: announcement.workspaceId,
+        });
+      } catch {}
+    }
+
     res.json(updated);
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -159,7 +207,7 @@ export const addComment = async (req, res) => {
 
     const announcement = await prisma.announcement.findUnique({
       where: { id },
-      select: { id: true, workspaceId: true },
+      select: { id: true, userId: true, workspaceId: true },
     });
 
     if (!announcement) {
@@ -189,6 +237,17 @@ export const addComment = async (req, res) => {
       io.to(`workspace_${announcement.workspaceId}`).emit("announcement:comment", {
         announcementId: id,
         comment: newComment,
+      });
+    } catch {}
+
+    // --- Comment notification ---
+    try {
+      await createNotification({
+        type: "COMMENT",
+        message: `commented on your announcement`,
+        userId: announcement.userId,
+        actorId: req.user.userId,
+        workspaceId: announcement.workspaceId,
       });
     } catch {}
 
