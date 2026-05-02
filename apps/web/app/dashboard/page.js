@@ -10,37 +10,32 @@ import ActivityFeed from "../components/ActivityFeed";
 import AnnouncementFeed from "../components/AnnouncementFeed";
 import AnnouncementInput from "../components/AnnouncementInput";
 import NotificationBell from "../components/NotificationBell";
+import KanbanBoard from "../components/KanbanBoard";
+import ThemeToggle from "../components/ThemeToggle";
+import StatisticsCards from "../components/StatisticsCards";
+import GoalsProgressSection from "../components/GoalsProgressSection";
 import { getSocket } from "../lib/socket";
 import { useNotificationStore } from "../store/notificationStore";
+import { useActionItemStore } from "../store/actionItemStore";
+
+// ── Nav config ────────────────────────────────────────────
+const NAV = [
+  { id:"dashboard",     label:"Dashboard",    icon:<svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg> },
+  { id:"goals",         label:"Goals",        icon:<svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg> },
+  { id:"action-items",  label:"Action Items", icon:<svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg> },
+  { id:"announcements", label:"Announcements",icon:<svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z"/></svg> },
+  { id:"activity",      label:"Activity",     icon:<svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg> },
+  { id:"notifications", label:"Notifications",icon:<svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg> },
+];
 
 const API_URL = "http://localhost:5000/api";
 
 const statusMeta = {
-  "no-milestones": {
-    label: "Open",
-    classes: "bg-slate-100 text-slate-700 ring-slate-200",
-    bar: "bg-slate-300",
-  },
-  "not-started": {
-    label: "Open",
-    classes: "bg-slate-100 text-slate-700 ring-slate-200",
-    bar: "bg-teal-700",
-  },
-  "in-progress": {
-    label: "Open",
-    classes: "bg-slate-100 text-slate-700 ring-slate-200",
-    bar: "bg-teal-700",
-  },
-  overdue: {
-    label: "Overdue",
-    classes: "bg-red-50 text-red-700 ring-red-200",
-    bar: "bg-red-500",
-  },
-  completed: {
-    label: "Done",
-    classes: "bg-emerald-50 text-emerald-700 ring-emerald-200",
-    bar: "bg-emerald-500",
-  },
+  "no-milestones": { label: "Open",    cls: "status-open",    bar: "bg-slate-400 dark:bg-slate-600" },
+  "not-started":   { label: "Open",    cls: "status-open",    bar: "bg-violet-500 dark:bg-teal-500" },
+  "in-progress":   { label: "Active",  cls: "status-active",  bar: "bg-violet-500 dark:bg-teal-500" },
+  overdue:         { label: "Overdue", cls: "status-overdue",  bar: "bg-red-500"                    },
+  completed:       { label: "Done",    cls: "status-done",     bar: "bg-emerald-500"                },
 };
 
 const isPastDue = (dueDate) => {
@@ -82,7 +77,7 @@ export default function Dashboard() {
   const router = useRouter();
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
-  const [workspaceColor, setWorkspaceColor] = useState("#0f766e");
+  const [workspaceColor, setWorkspaceColor] = useState("#8b5cf6");
   const [creating, setCreating] = useState(false);
   const [goalTitle, setGoalTitle] = useState("");
   const [goalDueDate, setGoalDueDate] = useState("");
@@ -94,7 +89,8 @@ export default function Dashboard() {
   const [inviteEmail, setInviteEmail] = useState("");
   const [inviteRole, setInviteRole] = useState("MEMBER");
   const [inviting, setInviting] = useState(false);
-
+  const [activeView, setActiveView] = useState("dashboard");
+  const [showCreateWs, setShowCreateWs] = useState(false);
 
   const { user, loading, fetchUser, logout } = useAuthStore();
   const {
@@ -113,6 +109,11 @@ export default function Dashboard() {
     cleanupSocket: cleanupNotificationSocket,
     reset: resetNotifications,
   } = useNotificationStore();
+  const {
+    listenSocket: listenTaskSocket,
+    cleanupSocket: cleanupTaskSocket,
+    reset: resetTasks,
+  } = useActionItemStore();
 
   const isAdmin =
     Boolean(currentWorkspace?.role === "ADMIN") ||
@@ -137,7 +138,11 @@ export default function Dashboard() {
     refreshWorkspaces();
     fetchNotifications();
     listenNotificationSocket();
-    return () => cleanupNotificationSocket();
+    listenTaskSocket();
+    return () => {
+      cleanupNotificationSocket();
+      cleanupTaskSocket();
+    };
   }, [user]);
 
   useEffect(() => {
@@ -473,7 +478,9 @@ export default function Dashboard() {
 
   const handleLogout = async () => {
     cleanupNotificationSocket();
+    cleanupTaskSocket();
     resetNotifications();
+    resetTasks();
     await logout();
     clearWorkspace();
     setGoals([]);
@@ -483,453 +490,516 @@ export default function Dashboard() {
 
   if (loading) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-slate-50 text-slate-700">
-        <div className="h-10 w-10 animate-spin rounded-full border-2 border-slate-200 border-t-teal-700" />
+      <main className="aurora-bg flex min-h-screen items-center justify-center">
+        <div className="h-10 w-10 animate-spin rounded-full border-2 border-white/30 dark:border-zinc-700 border-t-violet-500 dark:border-t-teal-500" />
       </main>
     );
   }
 
   if (!user) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-slate-50 text-slate-700">
-        Redirecting...
+      <main className="aurora-bg flex min-h-screen items-center justify-center text-slate-600 dark:text-zinc-400">
+        Redirecting…
       </main>
     );
   }
 
   return (
-    <main className="min-h-screen bg-slate-50 text-slate-950">
-      <div className="mx-auto grid min-h-screen max-w-screen-2xl grid-cols-1 lg:grid-cols-[300px_1fr_340px]">
-        <aside className="border-b border-slate-200 bg-white px-5 py-5 lg:border-b-0 lg:border-r">
-          <div className="mb-7 flex items-center justify-between gap-4">
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-teal-700">
-                Team Hub
-              </p>
-              <h1 className="mt-1 text-2xl font-semibold tracking-tight">Dashboard</h1>
-            </div>
-            <div className="flex items-center gap-2">
-              <NotificationBell />
-              <button
-                onClick={handleLogout}
-                className="rounded-md border border-slate-200 px-3 py-2 text-sm font-medium text-slate-600 transition hover:border-red-200 hover:bg-red-50 hover:text-red-700"
-              >
-                Logout
-              </button>
-            </div>
+    <main className="aurora-bg flex h-screen overflow-hidden text-slate-800 dark:text-slate-200">
+      {/* ── SIDEBAR ── */}
+      <aside className="glass-sidebar flex h-screen w-[220px] flex-col flex-shrink-0 sticky top-0 z-30">
+        <div className="flex items-center gap-2.5 px-4 py-5 border-b border-white/20 dark:border-white/[0.05]">
+          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-violet-600 to-purple-700 dark:from-teal-600 dark:to-teal-800 shadow-lg flex-shrink-0">
+            <svg className="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0"/></svg>
           </div>
-
-          <section className="mb-6 rounded-lg border border-slate-200 bg-slate-50 p-4">
-            <div className="flex items-center gap-3">
-              <div className="flex h-11 w-11 items-center justify-center rounded-full bg-teal-700 text-sm font-semibold text-white">
-                {(user.name || user.email || "U").slice(0, 2).toUpperCase()}
-              </div>
-              <div className="min-w-0">
-                <p className="truncate text-sm font-semibold">{user.name || "Workspace member"}</p>
-                <p className="truncate text-xs text-slate-500">{user.email}</p>
-              </div>
-            </div>
-          </section>
-
-          <section className="mb-6">
-            <div className="mb-3 flex items-center justify-between">
-              <h2 className="text-sm font-semibold text-slate-900">Workspaces</h2>
-              <span className="rounded-full bg-slate-100 px-2 py-1 text-xs font-medium text-slate-500">
-                {workspaces.length}
-              </span>
-            </div>
-
-            <div className="space-y-2">
-              {workspaces.length === 0 ? (
-                <p className="rounded-md border border-dashed border-slate-300 px-3 py-4 text-sm text-slate-500">
-                  No workspaces yet
-                </p>
-              ) : (
-                workspaces.map((workspace) => {
-                  const active = currentWorkspace?.id === workspace.id;
-
-                  return (
-                    <button
-                      key={workspace.id}
-                      onClick={() => setCurrentWorkspace(workspace)}
-                      className={`w-full rounded-md border px-3 py-3 text-left transition ${
-                        active
-                          ? "border-teal-600 bg-teal-50 shadow-sm"
-                          : "border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50"
-                      }`}
-                    >
-                      <div className="flex items-center gap-3">
-                        <span
-                          className="h-3 w-3 rounded-full"
-                          style={{ backgroundColor: workspace.color || "#0f766e" }}
-                        />
-                        <span className="min-w-0">
-                          <span className="block truncate text-sm font-semibold text-slate-900">
-                            {workspace.name}
-                          </span>
-                          {workspace.description && (
-                            <span className="block truncate text-xs text-slate-500">
-                              {workspace.description}
-                            </span>
-                          )}
-                        </span>
-                      </div>
-                    </button>
-                  );
-                })
-              )}
-            </div>
-          </section>
-
-          <section>
-            <h2 className="mb-3 text-sm font-semibold text-slate-900">Create Workspace</h2>
-            <div className="space-y-3">
-              <input
-                placeholder="Workspace name"
-                value={name}
-                onChange={(event) => setName(event.target.value)}
-                className="w-full rounded-md border border-slate-200 bg-white px-3 py-2.5 text-sm outline-none transition placeholder:text-slate-400 focus:border-teal-600 focus:ring-4 focus:ring-teal-100"
-              />
-              <textarea
-                placeholder="Description"
-                value={description}
-                onChange={(event) => setDescription(event.target.value)}
-                rows={3}
-                className="w-full resize-none rounded-md border border-slate-200 bg-white px-3 py-2.5 text-sm outline-none transition placeholder:text-slate-400 focus:border-teal-600 focus:ring-4 focus:ring-teal-100"
-              />
-              <div className="flex items-center justify-between rounded-md border border-slate-200 bg-white px-3 py-2.5">
-                <span className="text-sm text-slate-600">Accent color</span>
-                <input
-                  type="color"
-                  value={workspaceColor}
-                  onChange={(event) => setWorkspaceColor(event.target.value)}
-                  className="h-8 w-10 cursor-pointer border-0 bg-transparent"
-                />
-              </div>
-              <button
-                onClick={handleCreateWorkspace}
-                disabled={creating}
-                className="w-full rounded-md bg-teal-700 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-teal-800 disabled:cursor-not-allowed disabled:bg-slate-300"
-              >
-                {creating ? "Creating..." : "Create Workspace"}
-              </button>
-            </div>
-          </section>
-        </aside>
-
-        <section className="px-5 py-5 sm:px-7 lg:px-8">
-          <div className="mb-6 flex flex-col justify-between gap-4 border-b border-slate-200 pb-5 sm:flex-row sm:items-end">
-            <div>
-              <p className="text-sm font-medium text-slate-500">
-                {currentWorkspace ? "Current workspace" : "No workspace selected"}
-              </p>
-              <h2 className="mt-1 text-3xl font-semibold tracking-tight">
-                {currentWorkspace?.name || "Select a workspace"}
-              </h2>
-              {currentWorkspace?.description && (
-                <p className="mt-2 max-w-2xl text-sm text-slate-500">
-                  {currentWorkspace.description}
-                </p>
-              )}
-            </div>
+          <div className="min-w-0">
+            <p className="text-xs font-black tracking-tight text-slate-800 dark:text-white">PRODUCTIVITYOS</p>
+            <p className="text-[9px] uppercase tracking-widest text-slate-500 dark:text-zinc-500">Team Workspace</p>
           </div>
-
-          <div className="mb-6 grid grid-cols-2 gap-3 xl:grid-cols-4">
-            {stats.map((item) => (
-              <div key={item.label} className="rounded-lg border border-slate-200 bg-white p-4">
-                <p className="text-2xl font-semibold">{item.value}</p>
-                <p className="mt-1 text-sm font-medium text-slate-500">{item.label}</p>
+        </div>
+        <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-0.5">
+          {NAV.map(item => {
+            const active = activeView === item.id;
+            return (
+              <button key={item.id} onClick={() => setActiveView(item.id)}
+                className={`w-full flex items-center gap-3 rounded-xl px-3 py-2.5 text-left transition-all text-sm ${active ? "bg-violet-100/70 dark:bg-teal-500/10 text-violet-700 dark:text-teal-400 font-bold border-l-[3px] border-violet-500 dark:border-teal-500 pl-[9px]" : "text-slate-600 dark:text-zinc-400 hover:bg-white/30 dark:hover:bg-white/[0.05] font-medium"}`}>
+                <span className={active ? "text-violet-600 dark:text-teal-400" : "text-slate-400 dark:text-zinc-500"}>{item.icon}</span>
+                {item.label}
+              </button>
+            );
+          })}
+        </nav>
+        <div className="border-t border-white/20 dark:border-white/[0.05] p-3 space-y-2">
+          <div className="flex items-center justify-between px-1"><ThemeToggle /><NotificationBell /></div>
+          {user && (
+            <div className="flex items-center gap-2.5 rounded-xl bg-white/20 dark:bg-zinc-900 border border-white/30 dark:border-white/[0.07] px-3 py-2">
+              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-violet-500 to-purple-700 dark:from-teal-500 dark:to-teal-700 text-[11px] font-bold text-white flex-shrink-0">
+                {(user.name||user.email||"U").slice(0,2).toUpperCase()}
               </div>
-            ))}
-          </div>
-
-          <section className="mb-6 rounded-lg border border-slate-200 bg-white p-4">
-            <div className="mb-4 flex flex-col gap-1">
-              <h3 className="text-base font-semibold">New Goal</h3>
-            </div>
-            <div className="grid gap-3 md:grid-cols-[1fr_190px_150px_auto]">
-              <input
-                placeholder={currentWorkspace ? "Goal title" : "Select a workspace first"}
-                value={goalTitle}
-                onChange={(event) => setGoalTitle(event.target.value)}
-                disabled={!currentWorkspace}
-                className="rounded-md border border-slate-200 bg-white px-3 py-2.5 text-sm outline-none transition placeholder:text-slate-400 focus:border-teal-600 focus:ring-4 focus:ring-teal-100 disabled:bg-slate-100"
-              />
-              <input
-                type="date"
-                value={goalDueDate}
-                onChange={(event) => setGoalDueDate(event.target.value)}
-                disabled={!currentWorkspace}
-                className="rounded-md border border-slate-200 bg-white px-3 py-2.5 text-sm outline-none transition focus:border-teal-600 focus:ring-4 focus:ring-teal-100 disabled:bg-slate-100"
-              />
-              <select
-                value={goalStatus}
-                onChange={(event) => setGoalStatus(event.target.value)}
-                disabled={!currentWorkspace || !isAdmin}
-                className="rounded-md border border-slate-200 bg-white px-3 py-2.5 text-sm outline-none transition focus:border-teal-600 focus:ring-4 focus:ring-teal-100 disabled:bg-slate-100"
-              >
-                <option value="open">Open</option>
-                <option value="in-progress">In progress</option>
-                <option value="completed">Done</option>
-              </select>
-              <button
-                onClick={handleCreateGoal}
-                disabled={!currentWorkspace || creatingGoal}
-                className="rounded-md bg-teal-700 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-teal-800 disabled:cursor-not-allowed disabled:bg-slate-300"
-              >
-                {creatingGoal ? "Adding..." : "Add Goal"}
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-xs font-bold text-slate-800 dark:text-white">{user.name||"Member"}</p>
+                <p className="truncate text-[10px] text-slate-500 dark:text-zinc-500">{currentWorkspace?.name||"No workspace"}</p>
+              </div>
+              <button onClick={handleLogout} title="Logout" className="rounded-lg p-1 text-slate-400 hover:bg-red-50 dark:hover:bg-red-500/10 hover:text-red-500 transition flex-shrink-0">
+                <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
               </button>
             </div>
-          </section>
-
-          {currentWorkspace && isAdmin && (
-            <section className="mb-6 rounded-lg border border-slate-200 bg-white p-4">
-              <h3 className="mb-3 text-base font-semibold">Workspace Admin</h3>
-              <div className="grid gap-3 md:grid-cols-[1fr_180px_auto]">
-                <input
-                  type="email"
-                  placeholder="Invite by email"
-                  value={inviteEmail}
-                  onChange={(event) => setInviteEmail(event.target.value)}
-                  className="rounded-md border border-slate-200 bg-white px-3 py-2.5 text-sm outline-none transition placeholder:text-slate-400 focus:border-teal-600 focus:ring-4 focus:ring-teal-100"
-                />
-                <select
-                  value={inviteRole}
-                  onChange={(event) => setInviteRole(event.target.value)}
-                  className="rounded-md border border-slate-200 bg-white px-3 py-2.5 text-sm outline-none transition focus:border-teal-600 focus:ring-4 focus:ring-teal-100"
-                >
-                  <option value="MEMBER">Member</option>
-                  <option value="ADMIN">Admin</option>
-                </select>
-                <button
-                  onClick={handleInviteMember}
-                  disabled={inviting}
-                  className="rounded-md border border-slate-200 px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:border-teal-200 hover:bg-teal-50 hover:text-teal-800 disabled:cursor-not-allowed disabled:bg-slate-100"
-                >
-                  {inviting ? "Inviting..." : "Invite"}
-                </button>
-              </div>
-              <button
-                onClick={handleArchiveWorkspace}
-                className="mt-3 rounded-md border border-red-200 bg-red-50 px-4 py-2 text-sm font-semibold text-red-700 transition hover:bg-red-100"
-              >
-                Archive Workspace
-              </button>
-            </section>
           )}
+        </div>
+      </aside>
 
-          {!currentWorkspace ? (
-            <div className="rounded-lg border border-dashed border-slate-300 bg-white px-6 py-12 text-center">
-              <h3 className="text-lg font-semibold">Choose a workspace to begin</h3>
-              <p className="mx-auto mt-2 max-w-md text-sm text-slate-500">
-                Goals and milestones are scoped to the workspace you select.
-              </p>
+      {/* ── MAIN CONTENT ── */}
+      <div className="flex-1 flex flex-col overflow-hidden">
+
+        {/* ── TOP HEADER ── */}
+        <header className="flex items-center justify-between gap-4 border-b border-white/20 dark:border-white/[0.05] bg-white/10 dark:bg-black/60 backdrop-blur-xl px-6 py-3 flex-shrink-0">
+          <h1 className="text-xl font-black text-slate-800 dark:text-white capitalize">
+            {NAV.find(n => n.id === activeView)?.label || "Dashboard"}
+          </h1>
+          <div className="flex items-center gap-3">
+            <div className="relative">
+              <svg className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0"/></svg>
+              <input placeholder="Search..." className="pl-9 pr-4 py-1.5 rounded-xl border border-white/40 dark:border-white/[0.08] bg-white/25 dark:bg-zinc-900 text-sm text-slate-700 dark:text-zinc-300 placeholder:text-slate-400 outline-none focus:border-violet-400 dark:focus:border-teal-500 w-52 backdrop-blur-sm" />
             </div>
-          ) : goals.length === 0 ? (
-            <div className="rounded-lg border border-dashed border-slate-300 bg-white px-6 py-12 text-center">
-              <h3 className="text-lg font-semibold">No goals yet</h3>
-              <p className="mx-auto mt-2 max-w-md text-sm text-slate-500">
-                Create the first shared goal for this workspace.
-              </p>
+            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-violet-500 to-purple-700 dark:from-teal-500 dark:to-teal-700 text-[11px] font-bold text-white">
+              {(user?.name||user?.email||"U").slice(0,2).toUpperCase()}
             </div>
-          ) : (
-            <div className="space-y-4">
-              <div className="flex flex-col justify-between gap-2 sm:flex-row sm:items-end">
-                <div>
-                  <h3 className="text-base font-semibold">Goals</h3>
-                </div>
-                <p className="text-sm text-slate-500">{goals.length} total</p>
+          </div>
+        </header>
+
+        {/* ── VIEW CONTENT ── */}
+        <div className="flex-1 overflow-y-auto">
+
+          {/* ══ DASHBOARD VIEW ══ */}
+          {activeView === "dashboard" && (
+            <div className="p-6 space-y-6">
+              {/* Welcome header */}
+              <div>
+                <h2 className="text-3xl font-black text-slate-900 dark:text-white">
+                  Welcome back, {user?.name?.split(" ")[0] || "there"}.
+                </h2>
+                <p className="mt-1 text-slate-500 dark:text-zinc-400 text-sm">
+                  Here's what's happening in your workspace today.
+                </p>
               </div>
 
-              {visibleGoals.map((goal) => {
-                const progress = calculateProgress(goal.milestones);
-                const state = getGoalState(goal);
-                const meta = statusMeta[state];
-                const milestoneCount = goal.milestones?.length || 0;
-                const completedMilestones =
-                  goal.milestones?.filter((milestone) => milestone.completed).length || 0;
-                const dueDateLabel = goal.dueDate
-                  ? new Date(goal.dueDate).toLocaleDateString()
-                  : "No due date";
-
-                return (
-                  <article
-                    key={goal.id}
-                    className={`rounded-lg border bg-white p-5 shadow-sm ${
-                      state === "overdue" ? "border-red-200" : "border-slate-200"
-                    }`}
+              {!currentWorkspace ? (
+                <div className="glass-card p-16 text-center">
+                  <p className="text-5xl mb-4">🏢</p>
+                  <p className="text-lg font-bold text-slate-700 dark:text-zinc-300 mb-4">
+                    Select a workspace from the sidebar
+                  </p>
+                  <button
+                    onClick={() => setShowCreateWs(true)}
+                    className="btn-primary"
                   >
-                    <div className="mb-4 flex flex-col justify-between gap-3 sm:flex-row sm:items-start">
-                      <div className="min-w-0">
-                        <h3 className="truncate text-lg font-semibold">{goal.title}</h3>
-                        <div className="mt-3 flex flex-wrap items-center gap-2 text-xs">
-                          {goal.owner?.name && (
-                            <span className="rounded-full bg-slate-100 px-2.5 py-1 font-medium text-slate-600">
-                              {goal.owner.name}
-                            </span>
-                          )}
-                          {goal.dueDate && (
-                            <span
-                              className={`rounded-full px-2.5 py-1 font-medium ${
-                                state === "overdue"
-                                  ? "bg-red-50 text-red-700"
-                                  : "bg-slate-100 text-slate-600"
-                              }`}
-                            >
-                              {dueDateLabel}
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                      <span
-                        className={`w-fit rounded-full px-3 py-1 text-xs font-semibold ring-1 ${meta.classes}`}
-                      >
-                        {meta.label}
-                      </span>
-                    </div>
+                    Create Workspace
+                  </button>
+                </div>
+              ) : (
+                <>
+                  {/* Statistics Cards - Top Section */}
+                  <StatisticsCards
+                    stats={[
+                      {
+                        id: "total-goals",
+                        label: "Total Goals",
+                        value: goals.length,
+                        subtext:
+                          goals.length === 1
+                            ? "1 goal"
+                            : `${goals.length} goals`,
+                        icon: "📊",
+                        progress: Math.min(100, goals.length * 10),
+                        barGradient:
+                          "bg-gradient-to-r from-violet-500 to-purple-600 dark:from-teal-500 dark:to-emerald-500",
+                      },
+                      {
+                        id: "tasks-completed",
+                        label: "Tasks Completed",
+                        value: goals.reduce(
+                          (a, g) =>
+                            (g.milestones || []).filter((m) => m.completed)
+                              .length + a,
+                          0
+                        ),
+                        subtext: "milestones done",
+                        icon: "✓",
+                        progress: 60,
+                        barGradient:
+                          "bg-gradient-to-r from-emerald-500 to-teal-600 dark:from-emerald-500 dark:to-teal-600",
+                      },
+                      {
+                        id: "overdue-tasks",
+                        label: "Overdue Tasks",
+                        value: goals.filter((g) => getGoalState(g) === "overdue")
+                          .length,
+                        subtext: "critical priority",
+                        icon: "⚠️",
+                        progress: Math.min(
+                          100,
+                          goals.filter((g) => getGoalState(g) === "overdue")
+                            .length * 20
+                        ),
+                        barGradient:
+                          "bg-gradient-to-r from-red-500 to-red-600 dark:from-red-500 dark:to-red-600",
+                      },
+                      {
+                        id: "team-members",
+                        label: "Team Members",
+                        value: currentWorkspace.members?.length || 1,
+                        subtext: "in workspace",
+                        icon: "👥",
+                        progress: 75,
+                        barGradient:
+                          "bg-gradient-to-r from-blue-500 to-cyan-600 dark:from-blue-500 dark:to-cyan-600",
+                      },
+                    ]}
+                  />
 
-                    {milestoneCount > 0 && (
-                      <div className="mb-5">
-                        <div className="mb-2 flex items-center justify-between text-sm">
-                          <span className="font-medium text-slate-600">Progress</span>
-                          <span className="font-semibold">
-                            {completedMilestones}/{milestoneCount}
-                          </span>
-                        </div>
-                        <div className="h-2.5 overflow-hidden rounded-full bg-slate-100">
-                          <div
-                            className={`h-full rounded-full transition-all ${meta.bar}`}
-                            style={{ width: `${progress}%` }}
+                  {/* Main Content Grid */}
+                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    {/* Left Column: Goals Progress + Action Items */}
+                    <div className="lg:col-span-2 space-y-6">
+                      {/* Goals Progress Section */}
+                      {visibleGoals.length > 0 && (
+                        <div className="glass-card p-6">
+                          <GoalsProgressSection
+                            goals={visibleGoals.slice(0, 6)}
+                            onGoalClick={(goalId) => {
+                              setActiveView("goals");
+                            }}
                           />
                         </div>
-                      </div>
-                    )}
+                      )}
 
-                    {milestoneCount > 0 && (
-                      <div className="space-y-2">
-                        {goal.milestones?.map((milestone) => (
-                          <label
-                            key={milestone.id}
-                            className="flex items-center gap-3 rounded-md border border-slate-100 bg-slate-50 px-3 py-2 text-sm"
-                          >
-                            <input
-                              type="checkbox"
-                              checked={milestone.completed}
-                              onChange={() => handleToggleMilestone(goal.id, milestone.id)}
-                              className="h-4 w-4 rounded border-slate-300 accent-teal-700"
-                            />
-                            <span
-                              className={
-                                milestone.completed
-                                  ? "text-slate-400 line-through"
-                                  : "text-slate-700"
-                              }
+                      {/* Action Items Preview */}
+                      {visibleGoals.length > 0 && (
+                        <div className="glass-card p-6">
+                          <div className="mb-4 flex items-center justify-between">
+                            <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                              <span>☐</span> Action Items
+                            </h3>
+                            <button
+                              onClick={() => setActiveView("action-items")}
+                              className="text-xs font-bold text-violet-600 dark:text-teal-400 hover:text-violet-800 dark:hover:text-teal-300"
                             >
-                              {milestone.title}
-                            </span>
-                          </label>
-                        ))}
-                      </div>
-                    )}
-
-                    <div className="mt-4 flex flex-col gap-2 sm:flex-row">
-                      <input
-                        type="text"
-                        placeholder="Add step"
-                        value={milestoneInputs[goal.id] || ""}
-                        onChange={(event) =>
-                          setMilestoneInputs((current) => ({
-                            ...current,
-                            [goal.id]: event.target.value,
-                          }))
-                        }
-                        onKeyDown={(event) => {
-                          if (event.key === "Enter") {
-                            handleCreateMilestone(goal.id);
-                          }
-                        }}
-                        className="min-w-0 flex-1 rounded-md border border-slate-200 bg-white px-3 py-2.5 text-sm outline-none transition placeholder:text-slate-400 focus:border-teal-600 focus:ring-4 focus:ring-teal-100"
-                      />
-                      <button
-                        onClick={() => handleCreateMilestone(goal.id)}
-                        disabled={creatingMilestones[goal.id]}
-                        className="rounded-md border border-slate-200 px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:border-teal-200 hover:bg-teal-50 hover:text-teal-800 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-400"
-                      >
-                        {creatingMilestones[goal.id] ? "Adding..." : "Add Step"}
-                      </button>
+                              View All →
+                            </button>
+                          </div>
+                          <div className="space-y-2">
+                            {visibleGoals.slice(0, 2).map((goal) => (
+                              <div key={goal.id} className="border-l-4 border-violet-400 dark:border-teal-400 pl-4 py-2">
+                                <p className="text-sm font-bold text-slate-900 dark:text-white truncate">
+                                  {goal.title}
+                                </p>
+                                <p className="text-xs text-slate-500 dark:text-zinc-500">
+                                  {(goal.milestones || []).filter((m) => !m.completed).length} pending
+                                </p>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
                     </div>
 
-                    <PostUpdate goalId={goal.id} onPostSuccess={refreshActivity} />
+                    {/* Right Column: Activity Feed + Pinned Announcements */}
+                    <div className="space-y-6">
+                      {/* Activity Feed */}
+                      <div className="glass-card p-6">
+                        <div className="flex items-center gap-2 mb-4">
+                          <h3 className="text-sm font-bold text-slate-900 dark:text-white">
+                            Activity Feed
+                          </h3>
+                          <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+                        </div>
+                        <div className="space-y-3">
+                          {activities.slice(0, 5).map((a) => (
+                            <div key={a.id} className="flex gap-2.5">
+                              <span className="h-2 w-2 rounded-full bg-violet-500 dark:bg-teal-500 mt-1.5 flex-shrink-0" />
+                              <div>
+                                <p className="text-xs text-slate-700 dark:text-zinc-300">
+                                  <span className="font-bold text-slate-900 dark:text-white">
+                                    {a.user?.name || "User"}
+                                  </span>{" "}
+                                  {a.message}
+                                </p>
+                                <p className="text-[10px] text-slate-400 dark:text-zinc-600 mt-0.5">
+                                  {new Date(a.createdAt).toLocaleString()}
+                                </p>
+                              </div>
+                            </div>
+                          ))}
+                          {activities.length === 0 && (
+                            <p className="text-xs text-slate-400 dark:text-zinc-600">
+                              No activity yet
+                            </p>
+                          )}
+                        </div>
+                        {activities.length > 0 && (
+                          <button
+                            onClick={() => setActiveView("activity")}
+                            className="mt-4 w-full rounded-xl border border-white/30 dark:border-white/[0.07] py-2 text-[10px] font-bold uppercase tracking-widest text-slate-500 dark:text-zinc-500 hover:text-violet-600 dark:hover:text-teal-400 transition"
+                          >
+                            View All Activity
+                          </button>
+                        )}
+                      </div>
 
-                    <ActivityFeed goalId={goal.id} />
-                  </article>
-                );
-              })}
+                      {/* Pinned Announcements */}
+                      <div className="glass-card p-6">
+                        <div className="mb-4">
+                          <h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                            <span>📌</span> Announcements
+                          </h3>
+                        </div>
+                        <button
+                          onClick={() => setActiveView("announcements")}
+                          className="w-full rounded-xl border border-white/30 dark:border-white/[0.07] bg-white/15 dark:bg-white/[0.05] py-3 text-sm font-bold text-violet-600 dark:text-teal-400 hover:bg-white/25 dark:hover:bg-white/10 transition"
+                        >
+                          + View Team Feed
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </>
+              )}
             </div>
           )}
-        </section>
 
-        <aside className="border-t border-slate-200 bg-white px-5 py-5 lg:border-l lg:border-t-0 lg:overflow-y-auto lg:max-h-screen">
-          {/* Announcements */}
-          {currentWorkspace ? (
-            <div className="mb-6">
-              <div className="mb-4 flex items-center gap-2">
-                <svg className="h-5 w-5 text-teal-700" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z" />
-                </svg>
-                <h2 className="text-base font-semibold">Announcements</h2>
-              </div>
-              <div className="mb-3">
-                <AnnouncementInput workspaceId={currentWorkspace.id} />
-              </div>
-              <AnnouncementFeed workspaceId={currentWorkspace.id} />
-            </div>
-          ) : (
-            <div className="mb-6">
-              <h2 className="mb-3 text-base font-semibold">Announcements</h2>
-              <p className="rounded-md border border-dashed border-slate-300 px-3 py-4 text-sm text-slate-500">
-                Select a workspace to see announcements.
-              </p>
-            </div>
-          )}
-
-          {/* Divider */}
-          <div className="mb-5 border-t border-slate-200" />
-
-          {/* Activity */}
-          <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-base font-semibold">Activity</h2>
-            <span className="rounded-full bg-slate-100 px-2 py-1 text-xs font-medium text-slate-500">
-              {activities.length}
-            </span>
-          </div>
-
-          {!currentWorkspace ? (
-            <p className="rounded-md border border-dashed border-slate-300 px-3 py-4 text-sm text-slate-500">
-              Select a workspace to see activity.
-            </p>
-          ) : activities.length === 0 ? (
-            <p className="rounded-md border border-dashed border-slate-300 px-3 py-4 text-sm text-slate-500">
-              No activity yet.
-            </p>
-          ) : (
-            <div className="space-y-3">
-              {activities.map((activity) => (
-                <div key={activity.id} className="rounded-lg border border-slate-200 p-3">
-                  <p className="text-sm leading-5 text-slate-700">
-                    <span className="font-semibold text-slate-950">
-                      {activity.user?.name || "User"}
-                    </span>{" "}
-                    {activity.message}
-                  </p>
-                  <p className="mt-2 text-xs text-slate-400">
-                    {new Date(activity.createdAt).toLocaleString()}
-                  </p>
+          {/* ══ GOALS VIEW ══ */}
+          {activeView === "goals" && (
+            <div className="p-6">
+              <div className="flex items-start justify-between mb-6">
+                <div>
+                  <h2 className="text-2xl font-black text-slate-800 dark:text-white">Company Milestones</h2>
+                  <p className="text-slate-500 dark:text-zinc-400 mt-1">Strategic objectives for the current quarter.</p>
                 </div>
-              ))}
+                {currentWorkspace && isAdmin && (
+                  <button onClick={()=>document.getElementById("goal-form").scrollIntoView({behavior:"smooth"})} className="btn-primary flex items-center gap-1.5">
+                    <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4"/></svg>
+                    Create New Goal
+                  </button>
+                )}
+              </div>
+              {currentWorkspace && isAdmin && (
+                <div id="goal-form" className="glass-card p-4 mb-6 flex gap-3 flex-wrap items-end">
+                  <input placeholder="Goal title" value={goalTitle} onChange={e=>setGoalTitle(e.target.value)} className="glass-input flex-1 min-w-[180px]"/>
+                  <input type="date" value={goalDueDate} onChange={e=>setGoalDueDate(e.target.value)} className="glass-input w-40"/>
+                  <select value={goalStatus} onChange={e=>setGoalStatus(e.target.value)} className="rounded-xl border border-white/40 dark:border-white/[0.07] bg-white/20 dark:bg-zinc-900 px-3 py-2.5 text-sm text-slate-700 dark:text-zinc-300 outline-none">
+                    <option value="open">Open</option><option value="in-progress">In Progress</option><option value="completed">Done</option>
+                  </select>
+                  <button onClick={handleCreateGoal} disabled={creatingGoal||!goalTitle.trim()} className="btn-primary">{creatingGoal?"Adding…":"Add Goal"}</button>
+                </div>
+              )}
+              {!currentWorkspace ? (
+                <div className="glass-card p-16 text-center"><p className="text-4xl mb-3">🎯</p><p className="font-bold text-slate-700 dark:text-zinc-300">Select a workspace first</p></div>
+              ) : visibleGoals.length===0 ? (
+                <div className="glass-card p-16 text-center"><p className="text-4xl mb-3">🚀</p><p className="font-bold text-slate-700 dark:text-zinc-300">No goals yet — create one above</p></div>
+              ) : (
+                <div className="space-y-5">
+                  {visibleGoals.map(goal => {
+                    const state = getGoalState(goal);
+                    const meta = statusMeta[state];
+                    const progress = calculateProgress(goal.milestones);
+                    const ms = goal.milestones||[];
+                    return (
+                      <article key={goal.id} className={`glass-card overflow-hidden ${state==="overdue"?"!border-red-400/40 dark:!border-red-500/30":""}`}>
+                        <div className="p-6">
+                          <div className="flex items-start justify-between gap-4 mb-4">
+                            <div className="min-w-0">
+                              <div className="flex items-center gap-3 flex-wrap mb-1">
+                                <h3 className="text-2xl font-black text-slate-800 dark:text-white">{goal.title}</h3>
+                                <span className={meta.cls}>{meta.label}</span>
+                              </div>
+                              {goal.description && <p className="text-sm text-slate-500 dark:text-zinc-500">{goal.description}</p>}
+                            </div>
+                          </div>
+                          <div className="mb-1 flex items-center justify-between text-xs font-bold">
+                            <span className="text-[10px] uppercase tracking-widest text-slate-500 dark:text-zinc-500">PROGRESS</span>
+                            <span className="text-slate-700 dark:text-zinc-300">{progress}%</span>
+                          </div>
+                          <div className="h-2 rounded-full bg-white/30 dark:bg-zinc-800 overflow-hidden mb-2">
+                            <div className={`h-full rounded-full transition-all duration-700 ${meta.bar}`} style={{width:`${progress}%`}}/>
+                          </div>
+                          <div className="flex items-center justify-between text-xs text-slate-400 dark:text-zinc-600">
+                            {goal.dueDate && <span>📅 Due {new Date(goal.dueDate).toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"})}</span>}
+                          </div>
+                        </div>
+                        {/* 2-col: Milestones + Activity */}
+                        <div className="border-t border-white/20 dark:border-white/[0.05] grid grid-cols-1 lg:grid-cols-2">
+                          <div className="p-5 border-r border-white/20 dark:border-white/[0.05]">
+                            <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 dark:text-zinc-500 mb-3">↗ MILESTONES</p>
+                            <div className="space-y-2 mb-3">
+                              {ms.map(m=>(
+                                <label key={m.id} className="flex items-center gap-3 rounded-xl border border-white/30 dark:border-white/[0.06] bg-white/15 dark:bg-zinc-900/50 px-3 py-2.5 cursor-pointer hover:bg-white/25 dark:hover:bg-zinc-800/60 transition">
+                                  <input type="checkbox" checked={m.completed} onChange={()=>handleToggleMilestone(goal.id,m.id)} className="h-4 w-4 rounded accent-violet-600 dark:accent-teal-500 flex-shrink-0"/>
+                                  <span className={`text-sm ${m.completed?"line-through text-slate-400 dark:text-zinc-600":"text-slate-700 dark:text-zinc-200 font-medium"}`}>{m.title}</span>
+                                </label>
+                              ))}
+                            </div>
+                            <div className="flex gap-2">
+                              <input value={milestoneInputs[goal.id]||""} onChange={e=>setMilestoneInputs(p=>({...p,[goal.id]:e.target.value}))} placeholder="Add step…"
+                                onKeyDown={e=>{if(e.key==="Enter")handleCreateMilestone(goal.id);}} className="glass-input flex-1 text-sm py-2"/>
+                              <button onClick={()=>handleCreateMilestone(goal.id)} disabled={!milestoneInputs[goal.id]?.trim()||creatingMilestones[goal.id]} className="btn-ghost">+</button>
+                            </div>
+                          </div>
+                          <div className="p-5">
+                            <div className="flex items-center justify-between mb-3">
+                              <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 dark:text-zinc-500">↻ RECENT ACTIVITY</p>
+                            </div>
+                            <ActivityFeed goalId={goal.id}/>
+                            <PostUpdate goalId={goal.id} onPostSuccess={refreshActivity}/>
+                          </div>
+                        </div>
+                        {/* Kanban */}
+                        <div className="border-t border-white/20 dark:border-white/[0.05] p-5">
+                          <KanbanBoard goalId={goal.id} workspaceId={currentWorkspace?.id}/>
+                        </div>
+                      </article>
+                    );
+                  })}
+                </div>
+              )}
             </div>
           )}
-        </aside>
+
+          {/* ══ ACTION ITEMS VIEW ══ */}
+          {activeView === "action-items" && (
+            <div className="p-6">
+              {!currentWorkspace ? (
+                <div className="glass-card p-16 text-center"><p className="text-4xl mb-3">☰</p><p className="font-bold text-slate-700 dark:text-zinc-300">Select a workspace to see tasks</p></div>
+              ) : visibleGoals.length===0 ? (
+                <div className="glass-card p-16 text-center"><p className="text-4xl mb-3">✓</p><p className="font-bold text-slate-700 dark:text-zinc-300">No goals yet — create goals first</p></div>
+              ) : (
+                <div className="space-y-8">
+                  {visibleGoals.map(goal=>(
+                    <div key={goal.id}>
+                      <div className="flex items-center gap-3 mb-4">
+                        <h2 className="text-lg font-black text-slate-800 dark:text-white">{goal.title}</h2>
+                        <div className="h-px flex-1 bg-white/25 dark:bg-white/[0.05]"/>
+                      </div>
+                      <KanbanBoard goalId={goal.id} workspaceId={currentWorkspace.id}/>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* ══ ANNOUNCEMENTS VIEW ══ */}
+          {activeView === "announcements" && (
+            <div className="grid grid-cols-1 xl:grid-cols-[1fr_300px] h-full">
+              <div className="overflow-y-auto p-6 border-r border-white/20 dark:border-white/[0.05]">
+                <div className="mb-6">
+                  <h2 className="text-2xl font-black text-slate-800 dark:text-white">Team Feed</h2>
+                  <p className="text-slate-500 dark:text-zinc-400 mt-1">Stay updated with the latest team broadcasts.</p>
+                </div>
+                {currentWorkspace ? (
+                  <>
+                    <div className="mb-4"><AnnouncementInput workspaceId={currentWorkspace.id}/></div>
+                    <div className="mb-3 border-b border-white/20 dark:border-white/[0.05] pb-3">
+                      <button className="text-sm font-bold text-violet-700 dark:text-teal-400 border-b-2 border-violet-500 dark:border-teal-500 pb-1">Recent</button>
+                    </div>
+                    <AnnouncementFeed workspaceId={currentWorkspace.id}/>
+                  </>
+                ) : (
+                  <div className="glass-card p-16 text-center"><p className="text-4xl mb-3">📢</p><p className="font-bold text-slate-700 dark:text-zinc-300">Select a workspace first</p></div>
+                )}
+              </div>
+              <div className="overflow-y-auto p-6 space-y-4">
+                <div className="flex items-center gap-2"><h3 className="text-sm font-black text-slate-700 dark:text-zinc-300">Live Activity</h3><span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse"/></div>
+                {activities.slice(0,8).map(a=>(
+                  <div key={a.id} className="flex gap-3">
+                    <div className="flex h-8 w-8 rounded-full bg-gradient-to-br from-violet-500 to-purple-700 dark:from-teal-500 dark:to-teal-700 items-center justify-center text-[11px] font-bold text-white flex-shrink-0">{(a.user?.name||"?")[0].toUpperCase()}</div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs font-bold text-slate-800 dark:text-white">{a.user?.name||"User"}</p>
+                      <p className="text-xs text-slate-600 dark:text-zinc-400 mt-0.5">{a.message}</p>
+                      <p className="text-[10px] text-slate-400 dark:text-zinc-600 mt-0.5">{new Date(a.createdAt).toLocaleString()}</p>
+                    </div>
+                  </div>
+                ))}
+                {activities.length===0 && <p className="text-xs text-center text-slate-400 dark:text-zinc-600 py-8 border border-dashed border-white/25 dark:border-white/[0.06] rounded-xl">No activity yet</p>}
+              </div>
+            </div>
+          )}
+
+          {/* ══ ACTIVITY VIEW ══ */}
+          {activeView === "activity" && (
+            <div className="p-6 max-w-3xl">
+              <h2 className="text-2xl font-black text-slate-800 dark:text-white mb-6">Workspace Activity</h2>
+              {activities.length===0 ? (
+                <div className="glass-card p-16 text-center"><p className="text-4xl mb-3">⚡</p><p className="font-bold text-slate-700 dark:text-zinc-300">No activity yet</p></div>
+              ) : (
+                <div className="relative">
+                  <div className="absolute left-[14px] top-0 bottom-0 w-px bg-white/25 dark:bg-white/[0.06]"/>
+                  <div className="space-y-4">
+                    {activities.map(a=>(
+                      <div key={a.id} className="flex gap-4">
+                        <div className="flex h-7 w-7 items-center justify-center rounded-full bg-gradient-to-br from-violet-500 to-purple-700 dark:from-teal-500 dark:to-teal-700 text-[10px] font-bold text-white flex-shrink-0 relative z-10">{(a.user?.name||"?")[0].toUpperCase()}</div>
+                        <div className="glass-card flex-1 p-3">
+                          <p className="text-sm text-slate-700 dark:text-zinc-300"><span className="font-bold text-slate-800 dark:text-white">{a.user?.name||"User"}</span> {a.message}</p>
+                          <p className="text-[10px] text-slate-400 dark:text-zinc-600 mt-1">{new Date(a.createdAt).toLocaleString()}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* ══ NOTIFICATIONS VIEW ══ */}
+          {activeView === "notifications" && (
+            <div className="p-6 max-w-2xl">
+              <h2 className="text-2xl font-black text-slate-800 dark:text-white mb-6">Notifications</h2>
+              <div className="glass-card p-10 text-center"><p className="text-4xl mb-3">🔔</p><p className="text-slate-500 dark:text-zinc-400">Check the bell icon for live notifications</p></div>
+            </div>
+          )}
+
+          {/* ══ WORKSPACE MANAGEMENT (floating panel) ══ */}
+          {activeView === "dashboard" && (
+            <div className="px-6 pb-6">
+              <details className="glass-card">
+                <summary className="p-4 cursor-pointer font-bold text-sm text-slate-700 dark:text-zinc-300 select-none">⚙ Workspace Management</summary>
+                <div className="p-4 border-t border-white/20 dark:border-white/[0.05] space-y-4">
+                  <div className="space-y-2">
+                    <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 dark:text-zinc-500">Create New Workspace</p>
+                    <input placeholder="Workspace name" value={name} onChange={e=>setName(e.target.value)} className="glass-input"/>
+                    <textarea placeholder="Description" value={description} onChange={e=>setDescription(e.target.value)} rows={2} className="glass-input resize-none"/>
+                    <div className="flex items-center justify-between rounded-xl border border-white/40 dark:border-white/[0.07] bg-white/20 dark:bg-zinc-900 px-3 py-2">
+                      <span className="text-xs font-medium text-slate-600 dark:text-zinc-400">Accent color</span>
+                      <input type="color" value={workspaceColor} onChange={e=>setWorkspaceColor(e.target.value)} className="h-7 w-8 cursor-pointer border-0 bg-transparent"/>
+                    </div>
+                    <button onClick={handleCreateWorkspace} disabled={creating} className="btn-primary w-full">{creating?"Creating…":"Create Workspace"}</button>
+                  </div>
+                  {currentWorkspace && isAdmin && (
+                    <div className="space-y-2 border-t border-white/20 dark:border-white/[0.05] pt-4">
+                      <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 dark:text-zinc-500">Invite Member</p>
+                      <div className="flex gap-2">
+                        <input type="email" placeholder="Email" value={inviteEmail} onChange={e=>setInviteEmail(e.target.value)} className="glass-input flex-1"/>
+                        <select value={inviteRole} onChange={e=>setInviteRole(e.target.value)} className="rounded-xl border border-white/40 dark:border-white/[0.07] bg-white/20 dark:bg-zinc-900 px-2 py-2 text-sm text-slate-700 dark:text-zinc-300 outline-none">
+                          <option value="MEMBER">Member</option><option value="ADMIN">Admin</option>
+                        </select>
+                        <button onClick={handleInviteMember} disabled={inviting} className="btn-ghost">{inviting?"…":"Invite"}</button>
+                      </div>
+                      <button onClick={handleArchiveWorkspace} className="rounded-xl border border-red-400/30 dark:border-red-500/25 bg-red-50/50 dark:bg-red-500/10 px-4 py-2 text-xs font-bold text-red-600 dark:text-red-400 hover:bg-red-100/60 dark:hover:bg-red-500/20 transition">Archive Workspace</button>
+                    </div>
+                  )}
+                  <div className="space-y-1 border-t border-white/20 dark:border-white/[0.05] pt-4">
+                    <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 dark:text-zinc-500 mb-2">Your Workspaces</p>
+                    {workspaces.map(ws=>(
+                      <button key={ws.id} onClick={()=>setCurrentWorkspace(ws)} className={`w-full flex items-center gap-3 rounded-xl px-3 py-2 text-left transition text-sm ${currentWorkspace?.id===ws.id?"bg-violet-100/60 dark:bg-teal-500/10 text-violet-700 dark:text-teal-400 font-bold":"text-slate-600 dark:text-zinc-400 hover:bg-white/20 dark:hover:bg-white/[0.04]"}`}>
+                        <span className="h-2.5 w-2.5 rounded-full" style={{background:ws.color||"#8b5cf6"}}/>{ws.name}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </details>
+            </div>
+          )}
+
+        </div>
       </div>
     </main>
   );
