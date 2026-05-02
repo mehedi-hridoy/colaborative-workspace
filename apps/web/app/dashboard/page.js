@@ -8,6 +8,7 @@ import { useGoalStore } from "../../store/goalStore";
 import PostUpdate from "../components/PostUpdate";
 import ActivityFeed from "../components/ActivityFeed";
 import AnnouncementFeed from "../components/AnnouncementFeed";
+import AnnouncementInput from "../components/AnnouncementInput";
 import { getSocket } from "../lib/socket";
 
 const API_URL = "http://localhost:5000/api";
@@ -62,7 +63,13 @@ const getGoalState = (goal) => {
   const milestoneCount = goal.milestones?.length || 0;
   const progress = calculateProgress(goal.milestones);
 
-  if (milestoneCount === 0) return "no-milestones";
+  if (milestoneCount === 0) {
+    if (goal.status === "completed") return "completed";
+    if (goal.status === "in-progress") return "in-progress";
+    if (isPastDue(goal.dueDate) && goal.status !== "completed") return "overdue";
+    return "no-milestones";
+  }
+
   if (progress === 100) return "completed";
   if (isPastDue(goal.dueDate)) return "overdue";
   if (progress === 0) return "not-started";
@@ -73,13 +80,18 @@ export default function Dashboard() {
   const router = useRouter();
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
+  const [workspaceColor, setWorkspaceColor] = useState("#0f766e");
   const [creating, setCreating] = useState(false);
   const [goalTitle, setGoalTitle] = useState("");
   const [goalDueDate, setGoalDueDate] = useState("");
+  const [goalStatus, setGoalStatus] = useState("open");
   const [creatingGoal, setCreatingGoal] = useState(false);
   const [activities, setActivities] = useState([]);
   const [milestoneInputs, setMilestoneInputs] = useState({});
   const [creatingMilestones, setCreatingMilestones] = useState({});
+  const [inviteEmail, setInviteEmail] = useState("");
+  const [inviteRole, setInviteRole] = useState("MEMBER");
+  const [inviting, setInviting] = useState(false);
 
 
   const { user, loading, fetchUser, logout } = useAuthStore();
@@ -93,6 +105,10 @@ export default function Dashboard() {
     clearWorkspace,
   } = useWorkspaceStore();
   const { goals, setGoals, addGoal, updateGoal } = useGoalStore();
+
+  const isAdmin =
+    Boolean(currentWorkspace?.role === "ADMIN") ||
+    Boolean(currentWorkspace?.ownerId && currentWorkspace?.ownerId === user?.id);
 
   useEffect(() => {
     fetchUser();
@@ -110,22 +126,7 @@ export default function Dashboard() {
 
   useEffect(() => {
     if (!user) return;
-
-    const fetchWorkspaces = async () => {
-      const res = await fetch(`${API_URL}/workspaces`, {
-        credentials: "include",
-      });
-
-      if (!res.ok) {
-        setWorkspaces([]);
-        return;
-      }
-
-      const data = await res.json();
-      setWorkspaces(data);
-    };
-
-    fetchWorkspaces();
+    refreshWorkspaces();
   }, [user]);
 
   useEffect(() => {
@@ -229,6 +230,20 @@ export default function Dashboard() {
     }
   };
 
+  const refreshWorkspaces = async () => {
+    const res = await fetch(`${API_URL}/workspaces`, {
+      credentials: "include",
+    });
+
+    if (!res.ok) {
+      setWorkspaces([]);
+      return;
+    }
+
+    const data = await res.json();
+    setWorkspaces(data);
+  };
+
   const handleCreateWorkspace = async () => {
     if (!name.trim()) return alert("Name required");
 
@@ -243,7 +258,7 @@ export default function Dashboard() {
         body: JSON.stringify({
           name: name.trim(),
           description: description.trim(),
-          color: "#0f766e",
+          color: workspaceColor,
         }),
       });
 
@@ -256,10 +271,87 @@ export default function Dashboard() {
       setCurrentWorkspace(newWorkspace);
       setName("");
       setDescription("");
+      setWorkspaceColor("#0f766e");
+      await refreshWorkspaces();
     } catch (error) {
       alert("Error creating workspace: " + error.message);
     } finally {
       setCreating(false);
+    }
+  };
+
+  const handleArchiveWorkspace = async () => {
+    if (!currentWorkspace) return;
+
+    const confirmArchive = window.confirm(
+      "Archive this workspace? You can restore it later, but it will be hidden from the list."
+    );
+
+    if (!confirmArchive) return;
+
+    try {
+      const res = await fetch(
+        `${API_URL}/workspaces/${currentWorkspace.id}/archive`,
+        {
+          method: "PATCH",
+          credentials: "include",
+        }
+      );
+
+      if (!res.ok) {
+        throw new Error("Failed to archive workspace");
+      }
+
+      setCurrentWorkspace(null);
+      await refreshWorkspaces();
+    } catch (error) {
+      alert("Error archiving workspace: " + error.message);
+    }
+  };
+
+  const handleInviteMember = async () => {
+    if (!currentWorkspace) return;
+
+    if (!inviteEmail.trim()) {
+      alert("Enter an email to invite");
+      return;
+    }
+
+    setInviting(true);
+    try {
+      const res = await fetch(
+        `${API_URL}/workspaces/${currentWorkspace.id}/invite`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({
+            email: inviteEmail.trim(),
+            role: inviteRole,
+          }),
+        }
+      );
+
+      const raw = await res.text();
+      let data = null;
+
+      try {
+        data = raw ? JSON.parse(raw) : null;
+      } catch {
+        data = { msg: raw || "Unexpected response from server" };
+      }
+
+      if (!res.ok) {
+        throw new Error(data.msg || data.error || "Failed to invite member");
+      }
+
+      setInviteEmail("");
+      setInviteRole("MEMBER");
+      alert(`Invited ${data.user?.email || inviteEmail} as ${data.role}`);
+    } catch (error) {
+      alert("Error inviting member: " + error.message);
+    } finally {
+      setInviting(false);
     }
   };
 
@@ -280,6 +372,7 @@ export default function Dashboard() {
           title: goalTitle.trim(),
           dueDate: goalDueDate || null,
           workspaceId: currentWorkspace.id,
+          status: isAdmin ? goalStatus : undefined,
         }),
       });
 
@@ -291,6 +384,7 @@ export default function Dashboard() {
       addGoal(newGoal);
       setGoalTitle("");
       setGoalDueDate("");
+      setGoalStatus("open");
       await refreshActivity();
     } catch (error) {
       alert("Error creating goal: " + error.message);
@@ -392,7 +486,7 @@ export default function Dashboard() {
 
   return (
     <main className="min-h-screen bg-slate-50 text-slate-950">
-      <div className="mx-auto grid min-h-screen max-w-[1500px] grid-cols-1 lg:grid-cols-[300px_1fr_340px]">
+      <div className="mx-auto grid min-h-screen max-w-screen-2xl grid-cols-1 lg:grid-cols-[300px_1fr_340px]">
         <aside className="border-b border-slate-200 bg-white px-5 py-5 lg:border-b-0 lg:border-r">
           <div className="mb-7 flex items-center justify-between gap-4">
             <div>
@@ -487,6 +581,15 @@ export default function Dashboard() {
                 rows={3}
                 className="w-full resize-none rounded-md border border-slate-200 bg-white px-3 py-2.5 text-sm outline-none transition placeholder:text-slate-400 focus:border-teal-600 focus:ring-4 focus:ring-teal-100"
               />
+              <div className="flex items-center justify-between rounded-md border border-slate-200 bg-white px-3 py-2.5">
+                <span className="text-sm text-slate-600">Accent color</span>
+                <input
+                  type="color"
+                  value={workspaceColor}
+                  onChange={(event) => setWorkspaceColor(event.target.value)}
+                  className="h-8 w-10 cursor-pointer border-0 bg-transparent"
+                />
+              </div>
               <button
                 onClick={handleCreateWorkspace}
                 disabled={creating}
@@ -528,7 +631,7 @@ export default function Dashboard() {
             <div className="mb-4 flex flex-col gap-1">
               <h3 className="text-base font-semibold">New Goal</h3>
             </div>
-            <div className="grid gap-3 md:grid-cols-[1fr_190px_auto]">
+            <div className="grid gap-3 md:grid-cols-[1fr_190px_150px_auto]">
               <input
                 placeholder={currentWorkspace ? "Goal title" : "Select a workspace first"}
                 value={goalTitle}
@@ -543,6 +646,16 @@ export default function Dashboard() {
                 disabled={!currentWorkspace}
                 className="rounded-md border border-slate-200 bg-white px-3 py-2.5 text-sm outline-none transition focus:border-teal-600 focus:ring-4 focus:ring-teal-100 disabled:bg-slate-100"
               />
+              <select
+                value={goalStatus}
+                onChange={(event) => setGoalStatus(event.target.value)}
+                disabled={!currentWorkspace || !isAdmin}
+                className="rounded-md border border-slate-200 bg-white px-3 py-2.5 text-sm outline-none transition focus:border-teal-600 focus:ring-4 focus:ring-teal-100 disabled:bg-slate-100"
+              >
+                <option value="open">Open</option>
+                <option value="in-progress">In progress</option>
+                <option value="completed">Done</option>
+              </select>
               <button
                 onClick={handleCreateGoal}
                 disabled={!currentWorkspace || creatingGoal}
@@ -552,6 +665,42 @@ export default function Dashboard() {
               </button>
             </div>
           </section>
+
+          {currentWorkspace && isAdmin && (
+            <section className="mb-6 rounded-lg border border-slate-200 bg-white p-4">
+              <h3 className="mb-3 text-base font-semibold">Workspace Admin</h3>
+              <div className="grid gap-3 md:grid-cols-[1fr_180px_auto]">
+                <input
+                  type="email"
+                  placeholder="Invite by email"
+                  value={inviteEmail}
+                  onChange={(event) => setInviteEmail(event.target.value)}
+                  className="rounded-md border border-slate-200 bg-white px-3 py-2.5 text-sm outline-none transition placeholder:text-slate-400 focus:border-teal-600 focus:ring-4 focus:ring-teal-100"
+                />
+                <select
+                  value={inviteRole}
+                  onChange={(event) => setInviteRole(event.target.value)}
+                  className="rounded-md border border-slate-200 bg-white px-3 py-2.5 text-sm outline-none transition focus:border-teal-600 focus:ring-4 focus:ring-teal-100"
+                >
+                  <option value="MEMBER">Member</option>
+                  <option value="ADMIN">Admin</option>
+                </select>
+                <button
+                  onClick={handleInviteMember}
+                  disabled={inviting}
+                  className="rounded-md border border-slate-200 px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:border-teal-200 hover:bg-teal-50 hover:text-teal-800 disabled:cursor-not-allowed disabled:bg-slate-100"
+                >
+                  {inviting ? "Inviting..." : "Invite"}
+                </button>
+              </div>
+              <button
+                onClick={handleArchiveWorkspace}
+                className="mt-3 rounded-md border border-red-200 bg-red-50 px-4 py-2 text-sm font-semibold text-red-700 transition hover:bg-red-100"
+              >
+                Archive Workspace
+              </button>
+            </section>
+          )}
 
           {!currentWorkspace ? (
             <div className="rounded-lg border border-dashed border-slate-300 bg-white px-6 py-12 text-center">
@@ -708,6 +857,15 @@ export default function Dashboard() {
           {/* Announcements */}
           {currentWorkspace ? (
             <div className="mb-6">
+              <div className="mb-4 flex items-center gap-2">
+                <svg className="h-5 w-5 text-teal-700" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z" />
+                </svg>
+                <h2 className="text-base font-semibold">Announcements</h2>
+              </div>
+              <div className="mb-3">
+                <AnnouncementInput workspaceId={currentWorkspace.id} />
+              </div>
               <AnnouncementFeed workspaceId={currentWorkspace.id} />
             </div>
           ) : (

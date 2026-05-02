@@ -6,10 +6,9 @@ export const useWorkspaceStore = create((set) => ({
 
   setWorkspaces: (data) =>
     set((state) => {
-      const currentWorkspace =
-        state.currentWorkspace && data.some((ws) => ws.id === state.currentWorkspace.id)
-          ? state.currentWorkspace
-          : null;
+      const currentWorkspace = state.currentWorkspace
+        ? data.find((ws) => ws.id === state.currentWorkspace.id) || null
+        : null;
 
       if (!currentWorkspace) {
         localStorage.removeItem("workspace");

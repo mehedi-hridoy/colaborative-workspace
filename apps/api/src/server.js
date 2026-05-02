@@ -39,7 +39,18 @@ const server = http.createServer(app);
 initSocket(server);
 
 // start server
-const PORT = 5000;
+const PORT = process.env.PORT || 5000;
+
+server.on("error", (error) => {
+  if (error.code === "EADDRINUSE") {
+    console.error(`Port ${PORT} is already in use. Stop the existing process and try again.`);
+    process.exit(1);
+  }
+
+  console.error("Server error:", error);
+  process.exit(1);
+});
+
 server.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });

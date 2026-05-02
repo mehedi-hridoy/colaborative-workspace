@@ -30,6 +30,7 @@ model Workspace {
   description String?
   color       String?   
   createdAt   DateTime @default(now())
+  archivedAt  DateTime?
 
   ownerId String        
   owner   User @relation("workspace_owner", fields: [ownerId], references: [id])

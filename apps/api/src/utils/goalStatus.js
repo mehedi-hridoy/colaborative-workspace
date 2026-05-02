@@ -18,9 +18,18 @@ export const isGoalOverdue = (dueDate) => {
 };
 
 export const getGoalStatus = (goal) => {
-  const progress = calculateGoalProgress(goal.milestones || []);
+  const milestones = goal.milestones || [];
+  const progress = calculateGoalProgress(milestones);
 
-  if (progress === 100) return "completed";
-  if (isGoalOverdue(goal.dueDate)) return "overdue";
-  return "open";
+  if (milestones.length > 0) {
+    if (progress === 100) return "completed";
+    if (isGoalOverdue(goal.dueDate)) return "overdue";
+    return progress === 0 ? "open" : "in-progress";
+  }
+
+  if (isGoalOverdue(goal.dueDate) && goal.status !== "completed") {
+    return "overdue";
+  }
+
+  return goal.status || "open";
 };

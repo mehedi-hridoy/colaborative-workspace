@@ -1,5 +1,9 @@
 import { prisma } from "../config/db.js";
-import { canAccessWorkspace, denyWorkspaceAccess } from "../utils/workspaceAccess.js";
+import {
+  canAccessWorkspace,
+  denyWorkspaceAccess,
+  isWorkspaceAdmin,
+} from "../utils/workspaceAccess.js";
 import { getGoalStatus } from "../utils/goalStatus.js";
 import { ACTIVITY_TYPES } from "../utils/activityTypes.js";
 
@@ -33,7 +37,7 @@ export const getGoals = async (req, res) => {
 
 export const createGoal = async (req, res) => {
   try {
-    const { title, description, dueDate, workspaceId } = req.body;
+    const { title, description, dueDate, workspaceId, status } = req.body;
 
     if (!title || !workspaceId) {
       return res.status(400).json({ msg: "Title and workspace ID are required" });
@@ -44,12 +48,17 @@ export const createGoal = async (req, res) => {
       return denyWorkspaceAccess(res);
     }
 
+    const allowedStatuses = ["open", "in-progress", "completed"];
+    const isAdmin = await isWorkspaceAdmin(req.user.userId, workspaceId);
+    const initialStatus =
+      isAdmin && allowedStatuses.includes(status) ? status : "open";
+
     const goal = await prisma.goal.create({
       data: {
         title,
         description,
         dueDate: dueDate ? new Date(dueDate) : null,
-        status: "open",
+        status: initialStatus,
         workspaceId,
         ownerId: req.user.id,
       },

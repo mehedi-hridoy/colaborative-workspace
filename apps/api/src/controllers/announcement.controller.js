@@ -133,7 +133,10 @@ export const addReaction = async (req, res) => {
     // Emit real-time event
     try {
       const io = getIO();
-      io.to(`workspace_${announcement.workspaceId}`).emit("announcement:reaction", updated);
+      io.to(`workspace_${announcement.workspaceId}`).emit("announcement:reaction", {
+        announcementId: id,
+        reactions: updated.reactions,
+      });
     } catch {}
 
     res.json(updated);
@@ -163,11 +166,14 @@ export const addComment = async (req, res) => {
       return res.status(404).json({ msg: "Announcement not found" });
     }
 
-    await prisma.comment.create({
+    const newComment = await prisma.comment.create({
       data: {
         message: message.trim(),
         userId: req.user.userId,
         announcementId: id,
+      },
+      include: {
+        user: { select: { id: true, name: true, email: true, avatar: true } },
       },
     });
 
@@ -180,7 +186,10 @@ export const addComment = async (req, res) => {
     // Emit real-time event
     try {
       const io = getIO();
-      io.to(`workspace_${announcement.workspaceId}`).emit("announcement:comment", updated);
+      io.to(`workspace_${announcement.workspaceId}`).emit("announcement:comment", {
+        announcementId: id,
+        comment: newComment,
+      });
     } catch {}
 
     res.json(updated);
@@ -232,7 +241,10 @@ export const togglePin = async (req, res) => {
     // Emit real-time event
     try {
       const io = getIO();
-      io.to(`workspace_${announcement.workspaceId}`).emit("announcement:pin", updated);
+      io.to(`workspace_${announcement.workspaceId}`).emit("announcement:pin", {
+        id,
+        isPinned: updated.isPinned,
+      });
     } catch {}
 
     res.json(updated);
