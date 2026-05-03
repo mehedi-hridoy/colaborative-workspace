@@ -15,6 +15,8 @@ import notificationRoutes from "./routes/notification.routes.js";
 import actionItemRoutes from "./routes/actionItem.routes.js";
 import uploadRoutes from "./routes/upload.routes.js";
 import analyticsRoutes from "./routes/analytics.routes.js";
+import downloadRoutes from "./routes/download.routes.js";
+import filesRoutes from "./routes/files.routes.js";
 
 dotenv.config();
 
@@ -36,6 +38,8 @@ app.use("/api/notifications", notificationRoutes);
 app.use("/api/action-items", actionItemRoutes);
 app.use("/api/upload", uploadRoutes);
 app.use("/api/analytics", analyticsRoutes);
+app.use("/api/download", downloadRoutes);
+app.use("/api/files", filesRoutes);
 
 // test route
 app.get("/", (req, res) => {

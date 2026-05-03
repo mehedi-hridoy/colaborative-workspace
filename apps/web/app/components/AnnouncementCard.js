@@ -71,35 +71,40 @@ export default function AnnouncementCard({ item }) {
 
       {/* Attachments */}
       {item.attachments && item.attachments.length > 0 && (
-        <div style={{marginBottom:12,display:"flex",flexWrap:"wrap",gap:8}}>
+        <div style={{marginBottom:12,display:"flex",flexDirection:"column",gap:8}}>
           {item.attachments.map(att => {
             const isImage = att.type?.startsWith("image/");
             const fileName = att.name || att.url?.split("/").pop() || "File";
+            const fileUrl = att.url;
+            // For local files, add ?download=true to force download
+            const downloadUrl = fileUrl?.includes("/api/files/")
+              ? `${fileUrl}?download=true`
+              : fileUrl;
+
+            // File type icon helper
+            const ext = fileName.split(".").pop()?.toLowerCase();
+            const icon = { pdf:"📕", doc:"📘", docx:"📘", xls:"📗", xlsx:"📗", ppt:"📙", pptx:"📙", txt:"📝", csv:"📊", zip:"📦" }[ext] || "📄";
+
             return isImage ? (
-              <a key={att.id} href={att.url} target="_blank" rel="noreferrer">
-                <img src={att.url} alt={fileName} style={{maxHeight:200,maxWidth:"100%",borderRadius:10,border:"1px solid var(--border)",objectFit:"cover"}} />
+              <a key={att.id} href={fileUrl} target="_blank" rel="noreferrer">
+                <img src={fileUrl} alt={fileName} style={{maxHeight:200,maxWidth:"100%",borderRadius:10,border:"1px solid var(--border)",objectFit:"cover"}} />
               </a>
-            ) : isPdf(att) ? (
-              <div key={att.id} style={{width:"100%",display:"flex",flexDirection:"column",gap:8}}>
-                <div style={{display:"flex",alignItems:"center",gap:8,padding:"8px 14px",borderRadius:10,border:"1px solid var(--border)",background:"var(--bg-input)",fontSize:12,color:"var(--text-2)"}}>
-                  <span style={{fontSize:18}}>📄</span>
-                  <span style={{fontWeight:600,flex:1,minWidth:0,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{fileName}</span>
-                  <a href={att.url} target="_blank" rel="noreferrer" style={{fontWeight:700,color:"var(--text-accent)",textDecoration:"none"}}>
-                    Open
-                  </a>
-                </div>
-                <iframe
-                  src={att.url}
-                  title={fileName}
-                  style={{width:"100%",height:420,border:"1px solid var(--border)",borderRadius:10,background:"#fff"}}
-                />
-              </div>
             ) : (
-              <a key={att.id} href={att.url} target="_blank" rel="noreferrer"
-                style={{display:"flex",alignItems:"center",gap:8,padding:"8px 14px",borderRadius:10,border:"1px solid var(--border)",background:"var(--bg-input)",fontSize:12,color:"var(--text-2)",textDecoration:"none"}}>
-                <span style={{fontSize:18}}>📄</span>
-                <span style={{fontWeight:600}}>{fileName}</span>
-              </a>
+              <div key={att.id} style={{display:"flex",alignItems:"center",gap:10,padding:"10px 14px",borderRadius:10,border:"1px solid var(--border)",background:"var(--bg-input)"}}>
+                <span style={{fontSize:22,flexShrink:0}}>{icon}</span>
+                <div style={{flex:1,minWidth:0}}>
+                  <p style={{fontSize:12,fontWeight:700,color:"var(--text-1)",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",margin:0}}>{fileName}</p>
+                  <p style={{fontSize:10,color:"var(--text-4)",margin:"2px 0 0",textTransform:"uppercase"}}>{ext} file</p>
+                </div>
+                <a href={fileUrl} target="_blank" rel="noreferrer"
+                  style={{padding:"4px 10px",borderRadius:6,fontSize:11,fontWeight:700,color:"var(--text-accent)",border:"1px solid var(--border)",background:"transparent",textDecoration:"none",cursor:"pointer",whiteSpace:"nowrap"}}>
+                  View
+                </a>
+                <a href={downloadUrl} download={fileName}
+                  style={{padding:"4px 10px",borderRadius:6,fontSize:11,fontWeight:700,color:"#fff",background:"var(--text-accent,#3b82f6)",border:"none",textDecoration:"none",cursor:"pointer",whiteSpace:"nowrap"}}>
+                  ⬇ Download
+                </a>
+              </div>
             );
           })}
         </div>

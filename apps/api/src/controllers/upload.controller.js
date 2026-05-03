@@ -1,105 +1,71 @@
-import cloudinary from "../config/cloudinary.js";
 import { prisma } from "../config/db.js";
+import fs from "fs";
+import path from "path";
+import { fileURLToPath } from "url";
+import crypto from "crypto";
 
-// Upload Avatar
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const UPLOADS_DIR = path.resolve(__dirname, "../../uploads");
+
+// Ensure uploads directory exists
+if (!fs.existsSync(UPLOADS_DIR)) {
+  fs.mkdirSync(UPLOADS_DIR, { recursive: true });
+}
+
+// Upload Avatar — save locally
 export const uploadAvatar = async (req, res) => {
   try {
-    if (!req.file) {
-      return res.status(400).json({ msg: "No file uploaded" });
-    }
+    if (!req.file) return res.status(400).json({ msg: "No file uploaded" });
+    if (req.file.size > 5 * 1024 * 1024) return res.status(400).json({ msg: "File size exceeds 5MB limit" });
 
-    // Validate size (max 5MB)
-    if (req.file.size > 5 * 1024 * 1024) {
-      return res.status(400).json({ msg: "File size exceeds 5MB limit" });
-    }
+    const ext = path.extname(req.file.originalname || ".png");
+    const storedName = `avatar_${req.user.userId}_${Date.now()}${ext}`;
+    fs.writeFileSync(path.join(UPLOADS_DIR, storedName), req.file.buffer);
 
-    cloudinary.uploader.upload_stream(
-      { folder: "avatars" },
-      async (error, result) => {
-        if (error) return res.status(500).json({ msg: "Upload failed" });
+    const avatarUrl = `http://localhost:5000/api/files/${storedName}`;
+    await prisma.user.update({
+      where: { id: req.user.userId },
+      data: { avatar: avatarUrl },
+    });
 
-        await prisma.user.update({
-          where: { id: req.user.userId },
-          data: { avatar: result.secure_url },
-        });
-
-        res.json({ avatar: result.secure_url });
-      }
-    ).end(req.file.buffer);
+    res.json({ avatar: avatarUrl });
   } catch (err) {
+    console.error("uploadAvatar error:", err);
     res.status(500).json({ msg: "Error uploading avatar" });
   }
 };
 
-// Generic File Upload for Attachments
+// Upload any file — save locally, return URL via /api/files/
 export const uploadFile = async (req, res) => {
   try {
-    if (!req.file) {
-      return res.status(400).json({ msg: "No file uploaded" });
-    }
+    if (!req.file) return res.status(400).json({ msg: "No file uploaded" });
+    if (req.file.size > 10 * 1024 * 1024) return res.status(400).json({ msg: "File size exceeds 10MB limit" });
 
     const { goalId, activityId, announcementId } = req.body;
+    const originalName = req.file.originalname || `file_${Date.now()}`;
+    const ext = path.extname(originalName);
+    const uniqueId = crypto.randomBytes(8).toString("hex");
+    const storedName = `${uniqueId}${ext}`;
 
-    // Validate size (max 10MB for general files)
-    if (req.file.size > 10 * 1024 * 1024) {
-      return res.status(400).json({ msg: "File size exceeds 10MB limit" });
-    }
+    // Write to disk
+    fs.writeFileSync(path.join(UPLOADS_DIR, storedName), req.file.buffer);
+    console.log(`📁 Saved: ${originalName} → ${storedName} (${req.file.size} bytes)`);
 
-    // Determine the correct Cloudinary resource_type:
-    // - "image" for images
-    // - "video" for video/audio
-    // - "raw" for everything else (PDF, DOC, DOCX, TXT, etc.)
-    const mime = req.file.mimetype || "";
-    let resourceType = "raw";
-    if (mime.startsWith("image/")) resourceType = "image";
-    else if (mime.startsWith("video/") || mime.startsWith("audio/")) resourceType = "video";
+    const fileUrl = `http://localhost:5000/api/files/${storedName}`;
 
-    const uploadOptions = {
-      folder: "attachments",
-      resource_type: resourceType,
+    const data = {
+      url: fileUrl,
+      type: req.file.mimetype,
+      name: originalName,
+      userId: req.user.userId,
     };
+    if (goalId) data.goalId = goalId;
+    if (activityId) data.activityId = activityId;
+    if (announcementId) data.announcementId = announcementId;
 
-    // For raw files, preserve the original extension so Cloudinary serves them correctly
-    if (resourceType === "raw" && req.file.originalname) {
-      // Extract file extension
-      const ext = req.file.originalname.split('.').pop().toLowerCase();
-      // Clean filename (remove extension, sanitize)
-      const cleanName = req.file.originalname
-        .replace(/\.[^.]+$/, '') // Remove extension
-        .replace(/[^a-zA-Z0-9._-]/g, "_"); // Sanitize
-      
-      // Set public_id with sanitized name and explicit format
-      uploadOptions.public_id = `${Date.now()}_${cleanName}`;
-      uploadOptions.format = ext; // Explicitly set format to preserve extension
-      uploadOptions.unique_filename = true; // Ensure uniqueness
-    }
-
-    cloudinary.uploader.upload_stream(
-      uploadOptions,
-      async (error, result) => {
-        if (error) {
-          console.error("Cloudinary upload error:", error);
-          return res.status(500).json({ msg: "Upload failed", error: error.message });
-        }
-
-        const data = {
-          url: result.secure_url,
-          type: req.file.mimetype,
-          name: req.file.originalname || null,
-          userId: req.user.userId,
-        };
-
-        if (goalId) data.goalId = goalId;
-        if (activityId) data.activityId = activityId;
-        if (announcementId) data.announcementId = announcementId;
-
-        const file = await prisma.attachment.create({
-          data,
-        });
-
-        res.json(file);
-      }
-    ).end(req.file.buffer);
+    const file = await prisma.attachment.create({ data });
+    res.json(file);
   } catch (err) {
     console.error("uploadFile error:", err);
     res.status(500).json({ msg: "Error uploading file" });
