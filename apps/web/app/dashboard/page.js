@@ -628,7 +628,7 @@ export default function Dashboard() {
 
           {/* Upgrade card */}
           <div className="mt-4 bg-white rounded-lg border border-gray-100 p-3 shadow-sm">
-            <p className="text-sm font-bold text-gray-800">Upgrade your workspace</p>
+            <p className="text-sm font-bold text-slate-800">Upgrade your workspace</p>
             <p className="text-xs text-gray-500 mt-1">Unlock advanced features</p>
             <button className="mt-3 w-full py-2 bg-green-500 text-white rounded-md">Upgrade Now</button>
           </div>
@@ -661,7 +661,7 @@ export default function Dashboard() {
             <p className="text-sm text-gray-500 dark:text-zinc-400 mb-0.5">
               Good morning, {user?.name?.split(" ")[0] || "there"} 👋
             </p>
-            <h1 className="text-2xl font-black text-gray-900 dark:text-white capitalize">
+            <h1 className="text-2xl font-black text-slate-700 dark:text-white capitalize">
               {NAV.find(n => n.id === activeView)?.label || "Dashboard"}
             </h1>
           </div>
@@ -700,7 +700,7 @@ export default function Dashboard() {
                   <div className="flex justify-center mb-6">
                     <Icons.Dashboard size={56} className="text-violet-400 dark:text-teal-400" />
                   </div>
-                  <p className="text-lg font-bold text-gray-800 dark:text-zinc-300 mb-4">
+                  <p className="text-lg font-bold text-slate-700 dark:text-zinc-300 mb-4">
                     Select a workspace from the sidebar
                   </p>
                   <button
@@ -711,70 +711,68 @@ export default function Dashboard() {
                   </button>
                 </div>
               ) : (
-                <>
-                  {/* Statistics Cards */}
-                  <StatisticsCards
-                    stats={[
-                      {
-                        id: "total-goals",
-                        label: "Total Goals",
-                        value: goals.length,
-                        subtext:
-                          goals.length === 1
-                            ? "1 goal"
-                            : `${goals.length} goals`,
-                        icon: <Icons.Goals size={24} className="text-blue-500 dark:text-blue-400" />,
-                        progress: Math.min(100, goals.length * 10),
-                        barGradient:
-                          "bg-gradient-to-r from-blue-500 to-blue-600 dark:from-blue-500 dark:to-blue-600",
-                      },
-                      {
-                        id: "tasks-completed",
-                        label: "Tasks Completed",
-                        value: goals.reduce(
-                          (a, g) =>
-                            (g.milestones || []).filter((m) => m.completed)
-                              .length + a,
-                          0
-                        ),
-                        subtext: "milestones done",
-                        icon: <Icons.Check size={24} className="text-emerald-500 dark:text-emerald-400" />,
-                        progress: 60,
-                        barGradient:
-                          "bg-gradient-to-r from-emerald-500 to-emerald-600 dark:from-emerald-500 dark:to-emerald-600",
-                      },
-                      {
-                        id: "overdue-tasks",
-                        label: "Overdue Tasks",
-                        value: goals.filter((g) => getGoalState(g) === "overdue")
-                          .length,
-                        subtext: "critical priority",
-                        icon: <Icons.Activity size={24} className="text-red-500 dark:text-red-400" />,
-                        progress: Math.min(
-                          100,
-                          goals.filter((g) => getGoalState(g) === "overdue")
-                            .length * 20
-                        ),
-                        barGradient:
-                          "bg-gradient-to-r from-red-500 to-red-600 dark:from-red-500 dark:to-red-600",
-                      },
-                      {
-                        id: "team-members",
-                        label: "Team Members",
-                        value: currentWorkspace.members?.length || 1,
-                        subtext: "in workspace",
-                        icon: <Icons.Members size={24} className="text-purple-500 dark:text-purple-400" />,
-                        progress: 75,
-                        barGradient:
-                          "bg-gradient-to-r from-blue-500 to-cyan-600 dark:from-blue-500 dark:to-cyan-600",
-                      },
-                    ]}
-                  />
+                <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_300px] 2xl:grid-cols-[minmax(0,1fr)_320px] gap-5 items-start">
+                  {/* Left Column: Stats + Goals Progress + Action Items */}
+                  <div className="space-y-6 min-w-0">
+                    {/* Statistics Cards */}
+                    <StatisticsCards
+                      stats={[
+                        {
+                          id: "total-goals",
+                          label: "Total Goals",
+                          value: goals.length,
+                          subtext:
+                            goals.length === 1
+                              ? "1 goal"
+                              : `${goals.length} goals`,
+                          icon: <Icons.Goals size={24} className="text-blue-500 dark:text-blue-400" />,
+                          progress: Math.min(100, goals.length * 10),
+                          barGradient:
+                            "bg-gradient-to-r from-blue-500 to-blue-600 dark:from-blue-500 dark:to-blue-600",
+                        },
+                        {
+                          id: "tasks-completed",
+                          label: "Tasks Completed",
+                          value: goals.reduce(
+                            (a, g) =>
+                              (g.milestones || []).filter((m) => m.completed)
+                                .length + a,
+                            0
+                          ),
+                          subtext: "milestones done",
+                          icon: <Icons.Check size={24} className="text-emerald-500 dark:text-emerald-400" />,
+                          progress: 60,
+                          barGradient:
+                            "bg-gradient-to-r from-emerald-500 to-emerald-600 dark:from-emerald-500 dark:to-emerald-600",
+                        },
+                        {
+                          id: "overdue-tasks",
+                          label: "Overdue Tasks",
+                          value: goals.filter((g) => getGoalState(g) === "overdue")
+                            .length,
+                          subtext: "critical priority",
+                          icon: <Icons.Activity size={24} className="text-red-500 dark:text-red-400" />,
+                          progress: Math.min(
+                            100,
+                            goals.filter((g) => getGoalState(g) === "overdue")
+                              .length * 20
+                          ),
+                          barGradient:
+                            "bg-gradient-to-r from-red-500 to-red-600 dark:from-red-500 dark:to-red-600",
+                        },
+                        {
+                          id: "team-members",
+                          label: "Team Members",
+                          value: currentWorkspace.members?.length || 1,
+                          subtext: "in workspace",
+                          icon: <Icons.Members size={24} className="text-purple-500 dark:text-purple-400" />,
+                          progress: 75,
+                          barGradient:
+                            "bg-gradient-to-r from-blue-500 to-cyan-600 dark:from-blue-500 dark:to-cyan-600",
+                        },
+                      ]}
+                    />
 
-                  {/* Main Content Grid — left scrollable, right sticky sidebar */}
-                  <div className="grid grid-cols-1 xl:grid-cols-[1fr_320px] gap-6">
-                    {/* Left Column: Goals Progress + Action Items */}
-                    <div className="space-y-6 min-w-0">
                       {/* Goals Progress Section */}
                       {visibleGoals.length > 0 && (
                         <div className="glass-card p-6">
@@ -804,49 +802,48 @@ export default function Dashboard() {
                           <KanbanBoard goalId={visibleGoals[0].id} workspaceId={currentWorkspace.id} />
                         </div>
                       )}
-                    </div>
+                  </div>
 
-                    {/* Right Sidebar — sticky */}
-                    <div className="hidden xl:block">
-                      <div className="sticky top-0 space-y-5 max-h-[calc(100vh-140px)] overflow-y-auto pr-1 pb-4 custom-scrollbar">
-                        {/* Activity Feed */}
-                        <div className="glass-card p-5">
-                          <div className="flex items-center justify-between mb-3">
-                            <div className="flex items-center gap-2">
-                              <Icons.Activity size={18} className="text-gray-600 dark:text-gray-400" />
-                              <h3 className="text-sm font-bold text-gray-900 dark:text-white">Activity Feed</h3>
-                              <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
-                            </div>
-                            <button onClick={() => setActiveView("activity")} className="text-[10px] font-bold text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300">View all</button>
+                  {/* Right Sidebar — sticky */}
+                  <aside className="hidden xl:block min-w-0">
+                    <div className="sticky top-0 space-y-5 max-h-[calc(100vh-140px)] overflow-y-auto pr-1 pb-4 custom-scrollbar">
+                      {/* Activity Feed */}
+                      <div className="glass-card p-5">
+                        <div className="flex items-center justify-between mb-3">
+                          <div className="flex items-center gap-2">
+                            <Icons.Activity size={18} className="text-gray-600 dark:text-gray-400" />
+                            <h3 className="text-sm font-bold text-gray-900 dark:text-white">Activity Feed</h3>
+                            <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
                           </div>
-                          <RichActivityFeed activities={activities} />
+                          <button onClick={() => setActiveView("activity")} className="text-[10px] font-bold text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300">View all</button>
                         </div>
+                        <RichActivityFeed activities={activities} />
+                      </div>
 
-                        {/* Pinned Announcements */}
-                        <div className="glass-card p-5">
-                          <div className="flex items-center justify-between mb-3">
-                            <h3 className="text-sm font-bold text-gray-900 dark:text-white flex items-center gap-2">
-                              <span>📌</span> Pinned Announcements
-                            </h3>
-                            <button onClick={() => setActiveView("announcements")} className="text-[10px] font-bold text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300">View all</button>
-                          </div>
-                          <PinnedAnnouncements announcements={announcements} />
+                      {/* Pinned Announcements */}
+                      <div className="glass-card p-5">
+                        <div className="flex items-center justify-between mb-3">
+                          <h3 className="text-sm font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                            <span>📌</span> Pinned Announcements
+                          </h3>
+                          <button onClick={() => setActiveView("announcements")} className="text-[10px] font-bold text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300">View all</button>
                         </div>
+                        <PinnedAnnouncements announcements={announcements} />
+                      </div>
 
-                        {/* Tasks Overview */}
-                        <div className="glass-card p-5">
-                          <div className="flex items-center justify-between mb-3">
-                            <h3 className="text-sm font-bold text-gray-900 dark:text-white flex items-center gap-2">
-                              <Icons.FileText size={18} className="text-gray-600 dark:text-gray-400" /> Tasks Overview
-                            </h3>
-                            <span className="text-[10px] font-medium text-gray-500 dark:text-zinc-500">This Week</span>
-                          </div>
-                          <TasksOverview stats={tasksOverviewStats} />
+                      {/* Tasks Overview */}
+                      <div className="glass-card p-5">
+                        <div className="flex items-center justify-between mb-3">
+                          <h3 className="text-sm font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                            <Icons.FileText size={18} className="text-gray-600 dark:text-gray-400" /> Tasks Overview
+                          </h3>
+                          <span className="text-[10px] font-medium text-gray-500 dark:text-zinc-500">This Week</span>
                         </div>
+                        <TasksOverview stats={tasksOverviewStats} />
                       </div>
                     </div>
-                  </div>
-                </>
+                  </aside>
+                </div>
               )}
             </div>
           )}
@@ -855,7 +852,7 @@ export default function Dashboard() {
               {activeView === "analytics" && (
                 <div className="p-6 space-y-6">
                   <div className="flex justify-between items-center mb-2">
-                    <h2 className="text-2xl font-black text-gray-800 dark:text-white">Workspace Analytics</h2>
+                    <h2 className="text-2xl font-black text-slate-800 dark:text-white">Workspace Analytics</h2>
                     <div className="flex justify-end items-center gap-3">
                       <button onClick={handleExportCSV} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-gray-200 dark:border-white/[0.05] bg-white dark:bg-transparent text-xs font-medium text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-white/[0.02] transition">
                         <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
@@ -872,7 +869,7 @@ export default function Dashboard() {
                   {!currentWorkspace ? (
                     <div className="glass-card p-16 text-center">
                       <p className="text-5xl mb-4">🏢</p>
-                      <p className="text-lg font-bold text-gray-700 dark:text-zinc-300 mb-4">
+                      <p className="text-lg font-bold text-slate-700 dark:text-zinc-300 mb-4">
                         Select a workspace to view analytics
                       </p>
                     </div>
@@ -951,7 +948,7 @@ export default function Dashboard() {
                 <div className="p-6">
                   <div className="flex items-start justify-between mb-6">
                     <div>
-                      <h2 className="text-2xl font-black text-gray-800 dark:text-white">Company Milestones</h2>
+                      <h2 className="text-2xl font-black text-slate-700 dark:text-white">Company Milestones</h2>
                       <p className="text-gray-500 dark:text-zinc-400 mt-1">Strategic objectives for the current quarter.</p>
                     </div>
                     {currentWorkspace && canCreateGoal && (
@@ -972,9 +969,9 @@ export default function Dashboard() {
                     </div>
                   )}
                   {!currentWorkspace ? (
-                    <div className="glass-card p-16 text-center"><p className="text-4xl mb-3">🎯</p><p className="font-bold text-gray-700 dark:text-zinc-300">Select a workspace first</p></div>
+                    <div className="glass-card p-16 text-center"><p className="text-4xl mb-3">🎯</p><p className="font-bold text-slate-700 dark:text-zinc-300">Select a workspace first</p></div>
                   ) : visibleGoals.length === 0 ? (
-                    <div className="glass-card p-16 text-center"><p className="text-4xl mb-3">🚀</p><p className="font-bold text-gray-700 dark:text-zinc-300">No goals yet — create one above</p></div>
+                    <div className="glass-card p-16 text-center"><p className="text-4xl mb-3">🚀</p><p className="font-bold text-slate-700 dark:text-zinc-300">No goals yet — create one above</p></div>
                   ) : (
                     <div className="space-y-5">
                       {visibleGoals.map(goal => {
@@ -988,7 +985,7 @@ export default function Dashboard() {
                               <div className="flex items-start justify-between gap-4 mb-4">
                                 <div className="min-w-0">
                                   <div className="flex items-center gap-3 flex-wrap mb-1">
-                                    <h3 className="text-2xl font-black text-gray-800 dark:text-white">{goal.title}</h3>
+                                    <h3 className="text-2xl font-black text-slate-800 dark:text-white">{goal.title}</h3>
                                     <span className={meta.cls}>{meta.label}</span>
                                   </div>
                                   {goal.description && <p className="text-sm text-gray-500 dark:text-zinc-500">{goal.description}</p>}
@@ -1047,15 +1044,15 @@ export default function Dashboard() {
               {activeView === "action-items" && (
                 <div className="p-6">
                   {!currentWorkspace ? (
-                    <div className="glass-card p-16 text-center"><p className="text-4xl mb-3">☰</p><p className="font-bold text-gray-700 dark:text-zinc-300">Select a workspace to see tasks</p></div>
+                    <div className="glass-card p-16 text-center"><p className="text-4xl mb-3">☰</p><p className="font-bold text-slate-700 dark:text-zinc-300">Select a workspace to see tasks</p></div>
                   ) : visibleGoals.length === 0 ? (
-                    <div className="glass-card p-16 text-center"><p className="text-4xl mb-3">✓</p><p className="font-bold text-gray-700 dark:text-zinc-300">No goals yet — create goals first</p></div>
+                    <div className="glass-card p-16 text-center"><p className="text-4xl mb-3">✓</p><p className="font-bold text-slate-700 dark:text-zinc-300">No goals yet — create goals first</p></div>
                   ) : (
                     <div className="space-y-8">
                       {visibleGoals.map(goal => (
                         <div key={goal.id}>
                           <div className="flex items-center gap-3 mb-4">
-                            <h2 className="text-lg font-black text-gray-800 dark:text-white">{goal.title}</h2>
+                            <h2 className="text-lg font-black text-slate-800 dark:text-white">{goal.title}</h2>
                             <div className="h-px flex-1 bg-white/25 dark:bg-white/[0.05]" />
                           </div>
                           <KanbanBoard goalId={goal.id} workspaceId={currentWorkspace.id} />
@@ -1071,7 +1068,7 @@ export default function Dashboard() {
                 <div className="grid grid-cols-1 xl:grid-cols-[1fr_300px] h-full">
                   <div className="overflow-y-auto p-6 border-r border-white/20 dark:border-white/[0.05]">
                     <div className="mb-6">
-                      <h2 className="text-2xl font-black text-gray-800 dark:text-white">Team Feed</h2>
+                      <h2 className="text-2xl font-black text-slate-800 dark:text-white">Team Feed</h2>
                       <p className="text-gray-500 dark:text-zinc-400 mt-1">Stay updated with the latest team broadcasts.</p>
                     </div>
                     {currentWorkspace ? (
@@ -1083,16 +1080,16 @@ export default function Dashboard() {
                         <AnnouncementFeed workspaceId={currentWorkspace.id} />
                       </>
                     ) : (
-                      <div className="glass-card p-16 text-center"><p className="text-4xl mb-3">📢</p><p className="font-bold text-gray-700 dark:text-zinc-300">Select a workspace first</p></div>
+                      <div className="glass-card p-16 text-center"><p className="text-4xl mb-3">📢</p><p className="font-bold text-slate-700 dark:text-zinc-300">Select a workspace first</p></div>
                     )}
                   </div>
                   <div className="overflow-y-auto p-6 space-y-4">
-                    <div className="flex items-center gap-2"><h3 className="text-sm font-black text-gray-700 dark:text-zinc-300">Live Activity</h3><span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" /></div>
+                    <div className="flex items-center gap-2"><h3 className="text-sm font-black text-slate-700 dark:text-zinc-300">Live Activity</h3><span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" /></div>
                     {activities.slice(0, 8).map(a => (
                       <div key={a.id} className="flex gap-3">
                         <div className="flex h-8 w-8 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 dark:from-blue-500 dark:to-blue-600 items-center justify-center text-[11px] font-bold text-white flex-shrink-0">{(a.user?.name || "?")[0].toUpperCase()}</div>
                         <div className="flex-1 min-w-0">
-                          <p className="text-xs font-bold text-gray-800 dark:text-white">{a.user?.name || "User"}</p>
+                          <p className="text-xs font-bold text-slate-800 dark:text-white">{a.user?.name || "User"}</p>
                           <p className="text-xs text-gray-600 dark:text-zinc-400 mt-0.5">{a.message}</p>
                           <p className="text-[10px] text-gray-400 dark:text-zinc-600 mt-0.5">{new Date(a.createdAt).toLocaleString()}</p>
                         </div>
@@ -1106,9 +1103,9 @@ export default function Dashboard() {
               {/* ══ ACTIVITY VIEW ══ */}
               {activeView === "activity" && (
                 <div className="p-6 max-w-3xl">
-                  <h2 className="text-2xl font-black text-gray-800 dark:text-white mb-6">Workspace Activity</h2>
+                  <h2 className="text-2xl font-black text-slate-800 dark:text-white mb-6">Workspace Activity</h2>
                   {activities.length === 0 ? (
-                    <div className="glass-card p-16 text-center"><p className="text-4xl mb-3">⚡</p><p className="font-bold text-gray-700 dark:text-zinc-300">No activity yet</p></div>
+                    <div className="glass-card p-16 text-center"><p className="text-4xl mb-3">⚡</p><p className="font-bold text-slate-700 dark:text-zinc-300">No activity yet</p></div>
                   ) : (
                     <div className="relative">
                       <div className="absolute left-[14px] top-0 bottom-0 w-px bg-white/25 dark:bg-white/[0.06]" />
@@ -1117,7 +1114,7 @@ export default function Dashboard() {
                           <div key={a.id} className="flex gap-4">
                             <div className="flex h-7 w-7 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-blue-600 dark:from-blue-500 dark:to-blue-600 text-[10px] font-bold text-white flex-shrink-0 relative z-10">{(a.user?.name || "?")[0].toUpperCase()}</div>
                             <div className="glass-card flex-1 p-3">
-                              <p className="text-sm text-gray-700 dark:text-zinc-300"><span className="font-bold text-gray-800 dark:text-white">{a.user?.name || "User"}</span> {a.message}</p>
+                              <p className="text-sm text-slate-700 dark:text-zinc-300"><span className="font-bold text-slate-800 dark:text-white">{a.user?.name || "User"}</span> {a.message}</p>
                               <p className="text-[10px] text-gray-400 dark:text-zinc-600 mt-1">{new Date(a.createdAt).toLocaleString()}</p>
                             </div>
                           </div>
@@ -1131,7 +1128,7 @@ export default function Dashboard() {
               {/* ══ NOTIFICATIONS VIEW ══ */}
               {activeView === "notifications" && (
                 <div className="p-6 max-w-2xl">
-                  <h2 className="text-2xl font-black text-gray-800 dark:text-white mb-6">Notifications</h2>
+                  <h2 className="text-2xl font-black text-slate-700 dark:text-white mb-6">Notifications</h2>
                   <div className="glass-card p-10 text-center"><p className="text-4xl mb-3">🔔</p><p className="text-gray-500 dark:text-zinc-400">Check the bell icon for live notifications</p></div>
                 </div>
               )}
@@ -1139,9 +1136,9 @@ export default function Dashboard() {
               {/* ══ MEMBERS VIEW ══ */}
               {activeView === "members" && (
                 <div className="p-6 max-w-3xl">
-                  <h2 className="text-2xl font-black text-gray-800 dark:text-white mb-6">Workspace Members</h2>
+                  <h2 className="text-2xl font-black text-slate-700 dark:text-white mb-6">Workspace Members</h2>
                   {!currentWorkspace ? (
-                    <div className="glass-card p-16 text-center"><p className="text-4xl mb-3">👥</p><p className="font-bold text-gray-700 dark:text-zinc-300">Select a workspace first</p></div>
+                    <div className="glass-card p-16 text-center"><p className="text-4xl mb-3">👥</p><p className="font-bold text-slate-700 dark:text-zinc-300">Select a workspace first</p></div>
                   ) : (
                     <div className="space-y-3">
                       {(currentWorkspace.members || []).length === 0 ? (
@@ -1177,7 +1174,7 @@ export default function Dashboard() {
               {activeView === "dashboard" && (
                 <div className="px-6 pb-6">
                   <details className="glass-card">
-                    <summary className="p-4 cursor-pointer font-bold text-sm text-gray-700 dark:text-zinc-300 select-none">⚙ Workspace Management</summary>
+                    <summary className="p-4 cursor-pointer font-bold text-sm text-slate-700 dark:text-zinc-300 select-none">⚙ Workspace Management</summary>
                     <div className="p-4 border-t border-white/20 dark:border-white/[0.05] space-y-4">
                       <div className="space-y-2">
                         <p className="text-[10px] font-black uppercase tracking-widest text-gray-500 dark:text-zinc-500">Create New Workspace</p>
@@ -1229,7 +1226,7 @@ export default function Dashboard() {
               </div>
               <div className="space-y-2">
                 {workspaces?.map(ws => (
-                  <button key={ws.id} onClick={() => { setCurrentWorkspace(ws); setShowAllWorkspaces(false); }} className={`w-full flex items-center gap-3 rounded-md px-3 py-2 text-left text-sm ${currentWorkspace?.id === ws.id ? "bg-blue-50 text-blue-700 font-bold" : "text-gray-700 hover:bg-gray-50"}`}>
+                  <button key={ws.id} onClick={() => { setCurrentWorkspace(ws); setShowAllWorkspaces(false); }} className={`w-full flex items-center gap-3 rounded-md px-3 py-2 text-left text-sm ${currentWorkspace?.id === ws.id ? "bg-blue-50 text-blue-700 font-bold" : "text-slate-700 hover:bg-gray-50"}`}>
                     <span className="h-2.5 w-2.5 rounded-full" style={{ background: ws.color || "#60A5FA" }} />{ws.name}
                   </button>
                 ))}

@@ -1,5 +1,7 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 /* ─────────────────────────────────────────────────────────────
    LIGHT: Premium Solid Design | DARK: Deep with Glassmorphism
    Professional Luxury - Best Practices
@@ -428,5 +430,4 @@ html.dark .quill-dark-wrapper .ql-editor.ql-blank::before {
   color: rgba(255, 255, 255, 0.35);
   font-style: normal;
 }
-
 
