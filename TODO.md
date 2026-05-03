@@ -1,60 +1,22 @@
-# Collaborative Workspace Hub - Final Polish TODO
+# Task: Fix Create Workspace Button, Update README, Git Push
 
-## Status: ✅ ALL COMPLETE - Ready for Submission!
+## Plan Steps
+- [x] Create this TODO.md file ✅
+- [x] Implement Create Workspace Modal in apps/web/app/dashboard/page.js ✅
+  - Add JSX modal triggered by showCreateWs
+  - Move form states/inputs/logic to modal (reuse handleCreateWorkspace)
+  - Style as glass-card, responsive
+- [x] Fix dashboard no-workspace button: remove disabled/opacity if inappropriate ✅
+- [x] Update README.md ✅
+  - Add 🆕 Fix section
+  - Add troubleshooting for API/backend
+- [ ] Test:
+  - Backend running? `cd apps/api && npm run dev`
+  - Frontend: `npm run dev`
+  - Login → no ws → click Create → modal → create → sidebar updates
+- [ ] Git commit: `git add . && git commit -m "Fix: Create workspace button/modal + README update"`
+- [ ] Git push
+- [ ] Update TODO.md with completions ✅
 
-### 1. [x] Fix Create Workspace Button (Critical)
-   - Improve error handling in `apps/web/app/dashboard/page.js`
-   - Test POST /api/workspaces endpoint
-   - Add loading states & better UX
-
-### 2. [x] Add System Theme Preference Detection
-   - Update `apps/web/app/components/ThemeProvider.js`
-   - Use `matchMedia('prefers-color-scheme')`
-   - Auto-detect + manual override
-
-### 3. [x] Complete Swagger/OpenAPI Documentation
-   - Add missing @swagger JSDoc to all routes (*.routes.js)
-   - Enhance `apps/api/src/config/swagger.js`
-   - Test `/api/docs` UI completeness (bonus)
-
-### 4. [ ] Code Quality & Best Practices
-   - Error boundaries, loading states, validation
-   - Consistent error messages, toasts
-   - ESLint/Prettier fixes
-   - Optimistic updates where missing
-
-### 5. [ ] Core Features Bug-Free Verification
-   - Test auth, workspaces, goals/milestones, announcements, action items
-   - Real-time Socket.io (activity, presence)
-   - RBAC/permissions
-   - Analytics export
-
-### 6. [x] Update README.md
-   - List implemented advanced features (confirm which 2)
-   - API docs URL
-   - Setup/Env vars
-   - Known limitations
-   - Deployment instructions
-
-## Testing Commands
-```bash
-# Backend
-cd apps/api && npm run dev
-
-# Frontend  
-cd apps/web && npm run dev
-
-# Swagger docs
-http://localhost:5000/api/docs
-
-# Lint
-npm run lint
-```
-
-## Completion Criteria
-- [ ] Create workspace works from dashboard
-- [ ] System theme auto-detects
-- [ ] Swagger covers all endpoints
-- [ ] No console errors, responsive UI
-- [ ] README ready for submission
+**Notes:** Preserve all existing functionality (sidebar +, details form remains as advanced option).
 
