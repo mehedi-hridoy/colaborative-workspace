@@ -26,12 +26,13 @@ export const useAnnouncementStore = create((set, get) => ({
 
   // 🔹 Create (socket event handles insertion for all clients)
   createAnnouncement: async (workspaceId, content) => {
-    await fetch(API, {
+    const res = await fetch(API, {
       method: "POST",
       credentials: "include",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ workspaceId, content }),
     });
+    return res.json();
   },
 
   // 🔹 React

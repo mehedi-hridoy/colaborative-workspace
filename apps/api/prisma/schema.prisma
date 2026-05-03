@@ -8,66 +8,64 @@ datasource db {
 }
 
 model User {
-  id        String   @id @default(uuid())
-  email     String   @unique
-  password  String
-  name      String?
-  avatar    String?
-  createdAt DateTime @default(now())
-
-  memberships   Membership[]
-  workspaces    Workspace[]    @relation("workspace_owner")
-  goals         Goal[]
+  id            String         @id @default(uuid())
+  email         String         @unique
+  password      String
+  name          String?
+  avatar        String?
+  createdAt     DateTime       @default(now())
+  assignedTasks ActionItem[]   @relation("AssignedTasks")
   activities    Activity[]
   announcements Announcement[]
-  reactions     Reaction[]
+  attachments   Attachment[]
   comments      Comment[]
-  notifications Notification[] @relation("UserNotifications")
+  goals         Goal[]
+  memberships   Membership[]
   actions       Notification[] @relation("ActorNotifications")
+  notifications Notification[] @relation("UserNotifications")
+  reactions     Reaction[]
+  workspaces    Workspace[]    @relation("workspace_owner")
 }
 
 model Workspace {
-  id          String   @id @default(uuid())
-  name        String
-  description String?
-  color       String?   
-  createdAt   DateTime @default(now())
-  archivedAt  DateTime?
-
-  ownerId String        
-  owner   User @relation("workspace_owner", fields: [ownerId], references: [id])
-
-  members       Membership[]
-  goals         Goal[]
+  id            String         @id @default(uuid())
+  name          String
+  description   String?
+  createdAt     DateTime       @default(now())
+  color         String?
+  ownerId       String
+  archivedAt    DateTime?
   activities    Activity[]
   announcements Announcement[]
+  goals         Goal[]
+  members       Membership[]
+  owner         User           @relation("workspace_owner", fields: [ownerId], references: [id])
 }
 
 model Membership {
-  id          String   @id @default(uuid())
-  role        String   // ADMIN / MEMBER
+  id          String    @id @default(uuid())
+  role        String
   userId      String
   workspaceId String
-
-  user      User      @relation(fields: [userId], references: [id])
-  workspace Workspace @relation(fields: [workspaceId], references: [id])
+  user        User      @relation(fields: [userId], references: [id])
+  workspace   Workspace @relation(fields: [workspaceId], references: [id])
 }
 
 model Goal {
-  id          String   @id @default(uuid())
+  id          String       @id @default(uuid())
   title       String
   description String?
   status      String
   dueDate     DateTime?
-  createdAt   DateTime @default(now())
   workspaceId String
   ownerId     String
-
-  workspace Workspace @relation(fields: [workspaceId], references: [id])
-  owner     User      @relation(fields: [ownerId], references: [id])
-
-  milestones Milestone[]
-  activities Activity[]
+  createdAt   DateTime     @default(now())
+  actionItems ActionItem[]
+  activities  Activity[]
+  attachments Attachment[]
+  owner       User         @relation(fields: [ownerId], references: [id])
+  workspace   Workspace    @relation(fields: [workspaceId], references: [id])
+  milestones  Milestone[]
 }
 
 model Milestone {
@@ -75,65 +73,57 @@ model Milestone {
   title     String
   completed Boolean  @default(false)
   createdAt DateTime @default(now())
-
-  goalId String
-  goal   Goal @relation(fields: [goalId], references: [id])
+  goalId    String
+  goal      Goal     @relation(fields: [goalId], references: [id])
 }
 
 model Activity {
-  id        String   @id @default(uuid())
-  type      String
-  message   String
-  createdAt DateTime @default(now())
-
-  userId String
-  user   User @relation(fields: [userId], references: [id])
-
+  id          String       @id @default(uuid())
+  type        String
+  message     String
+  createdAt   DateTime     @default(now())
+  userId      String
   workspaceId String
-  workspace   Workspace @relation(fields: [workspaceId], references: [id])
-
-  goalId String?
-  goal   Goal? @relation(fields: [goalId], references: [id])
+  goalId      String?
+  goal        Goal?        @relation(fields: [goalId], references: [id])
+  user        User         @relation(fields: [userId], references: [id])
+  workspace   Workspace    @relation(fields: [workspaceId], references: [id])
+  attachments Attachment[]
 }
 
 model Announcement {
-  id        String   @id @default(uuid())
-  content   String
-  createdAt DateTime @default(now())
-  isPinned  Boolean  @default(false)
-
+  id          String       @id @default(uuid())
+  content     String
+  createdAt   DateTime     @default(now())
+  isPinned    Boolean      @default(false)
   userId      String
   workspaceId String
-
-  user      User      @relation(fields: [userId], references: [id])
-  workspace Workspace @relation(fields: [workspaceId], references: [id])
-
-  reactions Reaction[]
-  comments  Comment[]
+  user        User         @relation(fields: [userId], references: [id])
+  workspace   Workspace    @relation(fields: [workspaceId], references: [id])
+  attachments Attachment[]
+  comments    Comment[]
+  reactions   Reaction[]
 }
 
 model Reaction {
-  id             String @id @default(uuid())
+  id             String       @id @default(uuid())
   emoji          String
   userId         String
   announcementId String
-
-  user         User         @relation(fields: [userId], references: [id])
-  announcement Announcement @relation(fields: [announcementId], references: [id])
+  announcement   Announcement @relation(fields: [announcementId], references: [id])
+  user           User         @relation(fields: [userId], references: [id])
 
   @@unique([userId, announcementId, emoji])
 }
 
 model Comment {
-  id             String   @id @default(uuid())
+  id             String       @id @default(uuid())
   message        String
-  createdAt      DateTime @default(now())
-
+  createdAt      DateTime     @default(now())
   userId         String
   announcementId String
-
-  user         User         @relation(fields: [userId], references: [id])
-  announcement Announcement @relation(fields: [announcementId], references: [id])
+  announcement   Announcement @relation(fields: [announcementId], references: [id])
+  user           User         @relation(fields: [userId], references: [id])
 }
 
 model Notification {
@@ -142,13 +132,40 @@ model Notification {
   message     String
   isRead      Boolean  @default(false)
   createdAt   DateTime @default(now())
-
   userId      String
   actorId     String
-
   workspaceId String
   goalId      String?
+  actor       User     @relation("ActorNotifications", fields: [actorId], references: [id])
+  user        User     @relation("UserNotifications", fields: [userId], references: [id])
+}
 
-  user  User @relation("UserNotifications", fields: [userId], references: [id])
-  actor User @relation("ActorNotifications", fields: [actorId], references: [id])
+model ActionItem {
+  id          String    @id @default(uuid())
+  title       String
+  description String?
+  status      String    @default("todo")
+  priority    String    @default("medium")
+  dueDate     DateTime?
+  createdAt   DateTime  @default(now())
+  goalId      String
+  assigneeId  String?
+  assignee    User?     @relation("AssignedTasks", fields: [assigneeId], references: [id])
+  goal        Goal      @relation(fields: [goalId], references: [id], onDelete: Cascade)
+}
+
+model Attachment {
+  id             String        @id @default(uuid())
+  url            String
+  type           String
+  name           String?
+  createdAt      DateTime      @default(now())
+  userId         String
+  goalId         String?
+  activityId     String?
+  announcementId String?
+  activity       Activity?     @relation(fields: [activityId], references: [id])
+  announcement   Announcement? @relation(fields: [announcementId], references: [id])
+  goal           Goal?         @relation(fields: [goalId], references: [id])
+  user           User          @relation(fields: [userId], references: [id])
 }

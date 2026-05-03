@@ -22,6 +22,7 @@ export const getGoals = async (req, res) => {
       },
       include: {
         milestones: true,
+        actionItems: true,
         owner: true,
       },
       orderBy: {

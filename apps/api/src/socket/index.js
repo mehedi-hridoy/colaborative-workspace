@@ -51,7 +51,8 @@ export const initSocket = (server) => {
       socket.join(`user_${connectedUserId}`);
       console.log(`🔔 ${socket.id} joined user_${connectedUserId}`);
     }
-    // --- Join a workspace room ---
+    // --- Online presence tracking ---
+    // store socketId -> { userId, workspaceId }
     socket.on("join_workspace", async (workspaceId) => {
       if (!workspaceId) return;
 
@@ -79,23 +80,42 @@ export const initSocket = (server) => {
         }
 
         socket.join(`workspace_${workspaceId}`);
+        socket.data.userId = userId;
+        socket.data.workspaceId = workspaceId;
         console.log(`📥 ${socket.id} joined workspace_${workspaceId}`);
+
+        // Emit presence update
+        const clients = await io.in(`workspace_${workspaceId}`).fetchSockets();
+        const onlineUsers = Array.from(new Set(clients.map((c) => c.data.userId).filter(Boolean)));
+        io.to(`workspace_${workspaceId}`).emit("presence:update", onlineUsers);
       } catch (err) {
         console.error("join_workspace error:", err.message);
       }
     });
 
     // --- Leave a workspace room ---
-    socket.on("leave_workspace", (workspaceId) => {
+    socket.on("leave_workspace", async (workspaceId) => {
       if (!workspaceId) return;
 
       socket.leave(`workspace_${workspaceId}`);
+      delete socket.data.workspaceId;
       console.log(`📤 ${socket.id} left workspace_${workspaceId}`);
+
+      // Emit presence update
+      const clients = await io.in(`workspace_${workspaceId}`).fetchSockets();
+      const onlineUsers = Array.from(new Set(clients.map((c) => c.data.userId).filter(Boolean)));
+      io.to(`workspace_${workspaceId}`).emit("presence:update", onlineUsers);
     });
 
     // --- Disconnect ---
-    socket.on("disconnect", () => {
+    socket.on("disconnect", async () => {
       console.log("🔌 Socket disconnected:", socket.id);
+      if (socket.data.workspaceId) {
+        const workspaceId = socket.data.workspaceId;
+        const clients = await io.in(`workspace_${workspaceId}`).fetchSockets();
+        const onlineUsers = Array.from(new Set(clients.map((c) => c.data.userId).filter(Boolean)));
+        io.to(`workspace_${workspaceId}`).emit("presence:update", onlineUsers);
+      }
     });
   });
 

@@ -47,4 +47,23 @@ export const useWorkspaceStore = create((set) => ({
     localStorage.removeItem("workspace");
     set({ currentWorkspace: null, workspaces: [] });
   },
+
+  // --- Real-time presence ---
+  onlineUsers: [],
+  listenSocket: () => {
+    import("../app/lib/socket").then(({ getSocket }) => {
+      const socket = getSocket();
+      socket.off("presence:update");
+      socket.on("presence:update", (userIds) => {
+        set({ onlineUsers: userIds });
+      });
+    });
+  },
+  cleanupSocket: () => {
+    import("../app/lib/socket").then(({ getSocket }) => {
+      const socket = getSocket();
+      socket.off("presence:update");
+      set({ onlineUsers: [] });
+    });
+  },
 }));

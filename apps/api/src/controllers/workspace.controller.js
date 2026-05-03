@@ -1,5 +1,5 @@
 import { prisma } from "../config/db.js";
-import { isWorkspaceAdmin, denyWorkspaceAccess } from "../utils/workspaceAccess.js";
+import { isWorkspaceAdmin, canAccessWorkspace, denyWorkspaceAccess } from "../utils/workspaceAccess.js";
 
 export const createWorkspace = async (req, res) => {
   try {
@@ -154,6 +154,48 @@ export const inviteMember = async (req, res) => {
         avatar: user.avatar,
       },
     });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+// ─── GET /api/workspaces/:workspaceId/members ────────────────────────────────
+export const getWorkspaceMembers = async (req, res) => {
+  try {
+    const { workspaceId } = req.params;
+
+    const hasAccess = await canAccessWorkspace(req.user.userId, workspaceId);
+    if (!hasAccess) return denyWorkspaceAccess(res);
+
+    const workspace = await prisma.workspace.findUnique({
+      where: { id: workspaceId },
+      include: {
+        owner: { select: { id: true, name: true, email: true, avatar: true } },
+        members: {
+          include: {
+            user: { select: { id: true, name: true, email: true, avatar: true } },
+          },
+        },
+      },
+    });
+
+    if (!workspace) return res.status(404).json({ msg: "Workspace not found" });
+
+    // Deduplicate: owner + all members
+    const seen = new Set();
+    const members = [];
+
+    const push = (user, role) => {
+      if (!seen.has(user.id)) {
+        seen.add(user.id);
+        members.push({ ...user, role });
+      }
+    };
+
+    push(workspace.owner, "ADMIN");
+    workspace.members.forEach((m) => push(m.user, m.role));
+
+    res.json(members);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }

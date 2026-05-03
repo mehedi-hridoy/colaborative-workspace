@@ -48,8 +48,9 @@ export const createProgressUpdate = async (req, res) => {
       },
       include: {
         user: {
-          select: { id: true, email: true, name: true },
+          select: { id: true, email: true, name: true, avatar: true },
         },
+        attachments: true,
       },
     });
 
@@ -90,8 +91,9 @@ export const getGoalActivityFeed = async (req, res) => {
       where: { goalId },
       include: {
         user: {
-          select: { id: true, email: true, name: true },
+          select: { id: true, email: true, name: true, avatar: true },
         },
+        attachments: true,
       },
       orderBy: { createdAt: "desc" },
     });

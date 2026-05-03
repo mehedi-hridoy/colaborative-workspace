@@ -1,74 +1,137 @@
 "use client";
-
-import { useState } from "react";
+import { useState, useMemo } from "react";
+import dynamic from "next/dynamic";
 import { useAnnouncementStore } from "../store/announcementStore";
+import "react-quill-new/dist/quill.snow.css";
+
+// Dynamically import ReactQuill to avoid SSR issues
+const ReactQuill = dynamic(() => import("react-quill-new"), { ssr: false });
 
 export default function AnnouncementInput({ workspaceId }) {
   const [text, setText] = useState("");
   const [posting, setPosting] = useState(false);
-  const { createAnnouncement } = useAnnouncementStore();
+  const [attachment, setAttachment] = useState(null);
+  const [uploadError, setUploadError] = useState("");
+  const { createAnnouncement, fetchAnnouncements } = useAnnouncementStore();
 
   const handleSubmit = async () => {
-    if (!text.trim() || posting) return;
+    // Strip HTML tags to check if it's actually empty
+    const plainText = text.replace(/<[^>]*>?/gm, "").trim();
+    if ((!plainText && !attachment) || posting) return;
+
     setPosting(true);
-    await createAnnouncement(workspaceId, text.trim());
+    setUploadError("");
+    const ann = await createAnnouncement(workspaceId, text);
+
+    // Upload attachment if any
+    if (attachment && ann?.id) {
+      const formData = new FormData();
+      formData.append("file", attachment);
+      formData.append("announcementId", ann.id);
+
+      try {
+        const uploadRes = await fetch("http://localhost:5000/api/upload/file", {
+          method: "POST",
+          body: formData,
+          credentials: "include",
+        });
+        if (!uploadRes.ok) {
+          const errData = await uploadRes.json().catch(() => ({}));
+          console.error("File upload failed:", uploadRes.status, errData);
+          setUploadError(errData.msg || "File upload failed");
+        }
+      } catch (err) {
+        console.error("File upload error:", err);
+        setUploadError("Network error uploading file");
+      }
+      // Refresh announcements to show the new attachment
+      await fetchAnnouncements(workspaceId);
+    }
+
     setText("");
+    setAttachment(null);
     setPosting(false);
   };
 
-  const insertTag = (tagOpen, tagClose = null) => {
-    tagClose = tagClose ?? tagOpen.replace(/</g, '</');
-    const textarea = document.getElementById(`announcement-text-${workspaceId}`);
-    if (!textarea) return;
-    const start = textarea.selectionStart;
-    const end = textarea.selectionEnd;
-    const before = text.slice(0, start);
-    const sel = text.slice(start, end) || 'Your text';
-    const after = text.slice(end);
-    const next = before + tagOpen + sel + tagClose + after;
-    setText(next);
-    // move cursor after inserted block
-    const pos = before.length + tagOpen.length + sel.length + tagClose.length;
-    setTimeout(() => textarea.setSelectionRange(pos, pos), 0);
-  };
+  const isImage = attachment?.type?.startsWith("image/");
+  const attachmentPreview = useMemo(() => {
+    if (!attachment) return null;
+    return isImage ? URL.createObjectURL(attachment) : null;
+  }, [attachment, isImage]);
 
-  const applyColor = (color) => {
-    insertTag(`<span style=\"color:${color}\">`, `</span>`);
+  const modules = {
+    toolbar: [
+      [{ 'header': [1, 2, 3, false] }],
+      ['bold', 'italic', 'underline', 'strike'],
+      [{ 'color': [] }, { 'background': [] }],
+      [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+      ['link', 'clean']
+    ],
   };
 
   return (
-    <div className="rounded-lg border border-slate-200 bg-white p-3">
-      <div className="mb-2 flex items-center gap-2">
-        <button type="button" onClick={() => insertTag('<strong>', '</strong>')} className="rounded px-2 py-1 text-xs font-semibold border">B</button>
-        <button type="button" onClick={() => insertTag('<em>', '</em>')} className="rounded px-2 py-1 text-xs italic border">I</button>
-        <button type="button" onClick={() => insertTag('<h3>', '</h3>')} className="rounded px-2 py-1 text-xs font-semibold border">H3</button>
-        <input type="color" onChange={(e) => applyColor(e.target.value)} value="#000000" className="h-8 w-8 border-0 p-0" />
-        <span className="text-xs text-slate-400">Tip: select text then click a format button.</span>
+    <div className="glass-card flex flex-col" style={{ marginBottom: 12, padding: "14px", overflow: "hidden" }}>
+      <div className="quill-dark-wrapper" style={{ minHeight: "120px" }}>
+        <ReactQuill
+          theme="snow"
+          value={text}
+          onChange={setText}
+          modules={modules}
+          placeholder="Share an announcement with your team…"
+          readOnly={posting}
+        />
       </div>
 
-      <textarea
-        id={`announcement-text-${workspaceId}`}
-        placeholder="Write an announcement..."
-        value={text}
-        onChange={(e) => setText(e.target.value)}
-        rows={4}
-        disabled={posting}
-        className="w-full resize-none rounded-md border-0 bg-transparent p-0 text-sm outline-none placeholder:text-slate-400 disabled:text-slate-400"
-      />
-      <div className="mt-2 flex justify-end">
+      {attachment && (
+        <div className="flex items-center gap-3 mt-3 p-3 rounded-xl bg-gray-50 dark:bg-zinc-800/80 border border-gray-200 dark:border-white/[0.05]">
+          {isImage ? (
+            <img src={attachmentPreview} alt="Preview" className="h-16 w-16 object-cover rounded-lg border border-gray-200 dark:border-zinc-700 shadow-sm" />
+          ) : (
+            <div className="flex items-center justify-center h-12 w-12 bg-gray-100 dark:bg-zinc-900 rounded-lg border border-gray-200 dark:border-zinc-700 text-xl flex-shrink-0">
+              📄
+            </div>
+          )}
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-semibold text-gray-900 dark:text-gray-200 truncate">
+              {attachment.name}
+            </p>
+            <p className="text-xs text-gray-500 dark:text-zinc-500">
+              {(attachment.size / 1024).toFixed(1)} KB
+            </p>
+          </div>
+          <button onClick={() => setAttachment(null)} className="ml-auto p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-lg transition">
+            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+          </button>
+        </div>
+      )}
+
+      {uploadError && (
+        <div className="mt-3 p-3 rounded-xl bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20">
+          <p className="text-xs font-semibold text-red-600 dark:text-red-400">
+            ⚠️ {uploadError}
+          </p>
+        </div>
+      )}
+
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 14 }}>
+        <div>
+          <label className="cursor-pointer text-xs font-bold text-gray-500 hover:text-gray-700 dark:text-zinc-400 dark:hover:text-gray-300 flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-gray-200 dark:border-white/[0.05] bg-gray-50 dark:bg-zinc-800/50 hover:bg-gray-100 dark:hover:bg-zinc-700/50 transition">
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" /></svg>
+            Attach File
+            <input type="file" className="hidden" onChange={e => setAttachment(e.target.files[0])} accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.csv,.zip" />
+          </label>
+        </div>
         <button
           onClick={handleSubmit}
-          disabled={!text.trim() || posting}
-          className="inline-flex items-center gap-1.5 rounded-md bg-teal-700 px-4 py-2 text-xs font-semibold text-white transition hover:bg-teal-800 disabled:cursor-not-allowed disabled:bg-slate-300 disabled:text-slate-500"
+          disabled={(!text.replace(/<[^>]*>?/gm, "").trim() && !attachment) || posting}
+          className="btn-primary"
         >
           {posting ? (
-            <>
-              <div className="h-3 w-3 animate-spin rounded-full border-2 border-white/30 border-t-white" />
-              Posting...
-            </>
-          ) : (
-            "Post"
-          )}
+            <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
+              <div style={{ width: 14, height: 14, borderRadius: "50%", border: "2px solid rgba(255,255,255,0.3)", borderTopColor: "#fff", animation: "spin 0.8s linear infinite" }} />
+              Posting…
+            </span>
+          ) : "Post Announcement"}
         </button>
       </div>
     </div>

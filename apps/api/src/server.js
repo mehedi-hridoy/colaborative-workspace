@@ -12,6 +12,8 @@ import milestoneRoutes from "./routes/milestone.routes.js";
 import activityRoutes from "./routes/activity.routes.js";
 import announcementRoutes from "./routes/announcement.routes.js";
 import notificationRoutes from "./routes/notification.routes.js";
+import actionItemRoutes from "./routes/actionItem.routes.js";
+import uploadRoutes from "./routes/upload.routes.js";
 
 dotenv.config();
 
@@ -30,6 +32,8 @@ app.use("/api/milestones", milestoneRoutes);
 app.use("/api/activity", activityRoutes);
 app.use("/api/announcements", announcementRoutes);
 app.use("/api/notifications", notificationRoutes);
+app.use("/api/action-items", actionItemRoutes);
+app.use("/api/upload", uploadRoutes);
 
 // test route
 app.get("/", (req, res) => {

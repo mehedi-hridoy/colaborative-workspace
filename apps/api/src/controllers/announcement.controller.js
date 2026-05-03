@@ -19,6 +19,7 @@ const announcementInclude = {
     },
     orderBy: { createdAt: "asc" },
   },
+  attachments: true,
 };
 
 /**
@@ -240,15 +241,50 @@ export const addComment = async (req, res) => {
       });
     } catch {}
 
-    // --- Comment notification ---
+    // --- Notifications ---
     try {
-      await createNotification({
-        type: "COMMENT",
-        message: `commented on your announcement`,
-        userId: announcement.userId,
-        actorId: req.user.userId,
-        workspaceId: announcement.workspaceId,
-      });
+      // 1. Notify announcement author (if not self)
+      if (announcement.userId !== req.user.userId) {
+        await createNotification({
+          type: "COMMENT",
+          message: `commented on your announcement`,
+          userId: announcement.userId,
+          actorId: req.user.userId,
+          workspaceId: announcement.workspaceId,
+        });
+      }
+
+      // 2. Parse @mentions and notify mentioned users
+      const mentionMatches = message.match(/@(\w+)/g) || [];
+      const mentionHandles = [...new Set(mentionMatches.map((m) => m.slice(1).toLowerCase()))];
+
+      if (mentionHandles.length > 0) {
+        const members = await prisma.user.findMany({
+          where: { memberships: { some: { workspaceId: announcement.workspaceId } } },
+          select: { id: true, name: true, email: true },
+        });
+
+        const mentionedUsers = members.filter((u) => {
+          const nameLower = (u.name || u.email || "").toLowerCase();
+          return mentionHandles.some(
+            (handle) => nameLower === handle || nameLower.startsWith(handle)
+          );
+        });
+
+        await Promise.all(
+          mentionedUsers
+            .filter((u) => u.id !== req.user.userId) // Don't notify self
+            .map((mentionedUser) =>
+              createNotification({
+                type: "MENTION",
+                message: `mentioned you in a comment`,
+                userId: mentionedUser.id,
+                actorId: req.user.userId,
+                workspaceId: announcement.workspaceId,
+              })
+            )
+        );
+      }
     } catch {}
 
     res.json(updated);

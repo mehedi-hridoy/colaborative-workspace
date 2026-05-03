@@ -2,20 +2,20 @@
 
 export default function StatisticsCards({ stats = [] }) {
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+    <div className="grid grid-cols-1 sm:grid-cols-2 2xl:grid-cols-4 gap-4">
       {stats.map((stat) => (
         <div key={stat.id} className="glass-card p-5 group glass-hover">
           <div className="flex items-start justify-between mb-4">
             <div className="flex-1">
-              <p className="text-[9px] font-bold uppercase tracking-widest text-slate-500 dark:text-zinc-500 mb-2">
+              <p className="text-[9px] font-bold uppercase tracking-widest text-gray-500 dark:text-zinc-500 mb-2">
                 {stat.label}
               </p>
               <div className="flex items-baseline gap-2">
-                <span className="text-3xl font-black text-slate-900 dark:text-white">
+                <span className="text-3xl font-black text-gray-900 dark:text-white">
                   {stat.value}
                 </span>
                 {stat.subtext && (
-                  <span className="text-xs font-semibold text-slate-500 dark:text-zinc-400">
+                  <span className="text-xs font-semibold text-gray-500 dark:text-zinc-400">
                     {stat.subtext}
                   </span>
                 )}
@@ -31,7 +31,7 @@ export default function StatisticsCards({ stats = [] }) {
           {/* Progress bar */}
           {stat.progress !== undefined && (
             <>
-              <div className="mb-2 flex items-center justify-between text-[10px] font-bold text-slate-500 dark:text-zinc-500">
+              <div className="mb-2 flex items-center justify-between text-[10px] font-bold text-gray-500 dark:text-zinc-500">
                 <span>PROGRESS</span>
                 <span>{stat.progress}%</span>
               </div>
