@@ -2,6 +2,7 @@ import { prisma } from "../config/db.js";
 import { getIO } from "../socket/index.js";
 import { canAccessWorkspace, denyWorkspaceAccess } from "../utils/workspaceAccess.js";
 import { createNotification } from "../services/notification.service.js";
+import { hasPermission } from "../utils/permissions.js";
 
 // --- Shared include shape for consistent responses ---
 const announcementInclude = {
@@ -36,8 +37,8 @@ export const createAnnouncement = async (req, res) => {
       return res.status(400).json({ msg: "workspaceId is required" });
     }
 
-    const hasAccess = await canAccessWorkspace(req.user.userId, workspaceId);
-    if (!hasAccess) return denyWorkspaceAccess(res);
+    const canCreate = await hasPermission(req.user.userId, workspaceId, "announcement:create");
+    if (!canCreate) return res.status(403).json({ msg: "Permission denied to create announcement" });
 
     const announcement = await prisma.announcement.create({
       data: {
@@ -309,22 +310,10 @@ export const togglePin = async (req, res) => {
       return res.status(404).json({ msg: "Announcement not found" });
     }
 
-    // Only workspace owner or admin can pin
-    const workspace = await prisma.workspace.findUnique({
-      where: { id: announcement.workspaceId },
-      select: { ownerId: true },
-    });
+    const canPin = await hasPermission(req.user.userId, announcement.workspaceId, "announcement:pin");
 
-    const membership = await prisma.membership.findFirst({
-      where: {
-        userId: req.user.userId,
-        workspaceId: announcement.workspaceId,
-        role: "ADMIN",
-      },
-    });
-
-    if (workspace.ownerId !== req.user.userId && !membership) {
-      return res.status(403).json({ msg: "Only admins can pin announcements" });
+    if (!canPin) {
+      return res.status(403).json({ msg: "Permission denied to pin announcements" });
     }
 
     const updated = await prisma.announcement.update({

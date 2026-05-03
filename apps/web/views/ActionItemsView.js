@@ -1,4 +1,5 @@
 "use client";
+import { Icons } from "../lib/icons";
 import TopBar from "../app/components/TopBar";
 import NotificationBell from "../app/components/NotificationBell";
 import KanbanBoard from "../app/components/KanbanBoard";
@@ -13,12 +14,16 @@ export default function ActionItemsView({ goals, currentWorkspace }) {
       <div className="flex-1 overflow-y-auto p-6">
         {!currentWorkspace ? (
           <div className="glass-card p-16 text-center">
-            <p className="text-4xl mb-3">☰</p>
+            <div className="flex justify-center mb-4">
+              <Icons.Menu size={48} className="text-gray-400 dark:text-gray-600" />
+            </div>
             <p className="font-bold text-slate-700 dark:text-zinc-300">Select a workspace to see tasks</p>
           </div>
         ) : goals.length === 0 ? (
           <div className="glass-card p-16 text-center">
-            <p className="text-4xl mb-3">✓</p>
+            <div className="flex justify-center mb-4">
+              <Icons.Check size={48} className="text-gray-400 dark:text-gray-600" />
+            </div>
             <p className="font-bold text-slate-700 dark:text-zinc-300">No goals yet — create goals first to manage tasks</p>
           </div>
         ) : (

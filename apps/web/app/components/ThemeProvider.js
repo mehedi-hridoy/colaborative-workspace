@@ -5,11 +5,11 @@ const ThemeCtx = createContext({ theme: "dark", toggle: () => {} });
 export const useTheme = () => useContext(ThemeCtx);
 
 export default function ThemeProvider({ children }) {
-  const [theme, setTheme] = useState("dark");
+  const [theme, setTheme] = useState("light");
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    const saved = localStorage.getItem("th") || "dark";
+    const saved = localStorage.getItem("th") || "light";
     setTheme(saved);
     document.documentElement.classList.toggle("dark", saved === "dark");
     setMounted(true);

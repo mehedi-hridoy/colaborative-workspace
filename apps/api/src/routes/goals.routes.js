@@ -1,5 +1,5 @@
 import express from "express";
-import { getGoals, createGoal, postGoalUpdate } from "../controllers/goals.controller.js";
+import { getGoals, createGoal, postGoalUpdate, deleteGoal } from "../controllers/goals.controller.js";
 import { protect } from "../middleware/auth.middleware.js";
 
 const router = express.Router();
@@ -12,5 +12,8 @@ router.post("/:goalId/updates", protect, postGoalUpdate);
 
 // GET goals for a workspace
 router.get("/:workspaceId", protect, getGoals);
+
+// DELETE a goal
+router.delete("/:goalId", protect, deleteGoal);
 
 export default router;

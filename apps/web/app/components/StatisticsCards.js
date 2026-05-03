@@ -22,9 +22,9 @@ export default function StatisticsCards({ stats = [] }) {
               </div>
             </div>
             {stat.icon && (
-              <span className="text-2xl opacity-10 group-hover:opacity-20 transition">
+              <div className="opacity-20 group-hover:opacity-40 transition">
                 {stat.icon}
-              </span>
+              </div>
             )}
           </div>
 

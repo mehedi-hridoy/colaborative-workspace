@@ -32,7 +32,8 @@ export default function AnnouncementCard({ item }) {
   const handleComment = async () => {
     if (!comment.trim()||posting) return;
     setPosting(true);
-    await addComment(item.id, comment.trim());
+    const currentUser = item.user; // Use announcement's user context
+    await addComment(item.id, comment.trim(), currentUser);
     setComment(""); setPosting(false);
   };
   const handlePin = async () => {

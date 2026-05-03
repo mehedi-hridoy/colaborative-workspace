@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import { Icons } from "../../lib/icons";
 import { useAuthStore } from "../../store/authStore";
 import { useWorkspaceStore } from "../../store/workspaceStore";
 import { useGoalStore } from "../../store/goalStore";
@@ -22,17 +23,18 @@ import { getSocket } from "../lib/socket";
 import { useNotificationStore } from "../store/notificationStore";
 import { useActionItemStore } from "../store/actionItemStore";
 import { useAnnouncementStore } from "../store/announcementStore";
+import { usePermissions, getRoleFromWorkspace } from "../hooks/usePermissions";
 
 // ── Nav config ────────────────────────────────────────────
 const NAV = [
-  { id: "dashboard", label: "Dashboard", icon: "🏠" },
-  { id: "goals", label: "Goals", icon: "🎯" },
-  { id: "action-items", label: "Action Items", icon: "☐" },
-  { id: "announcements", label: "Announcements", icon: "📢" },
-  { id: "activity", label: "Activity", icon: "⚡" },
-  { id: "notifications", label: "Notifications", icon: "🔔" },
-  { id: "analytics", label: "Analytics", icon: "📈" },
-  { id: "members", label: "Members", icon: "👥" },
+  { id: "dashboard", label: "Dashboard", icon: "Dashboard" },
+  { id: "goals", label: "Goals", icon: "Goals" },
+  { id: "action-items", label: "Action Items", icon: "ActionItems" },
+  { id: "announcements", label: "Announcements", icon: "Announcements" },
+  { id: "activity", label: "Activity", icon: "Activity" },
+  { id: "notifications", label: "Notifications", icon: "Notifications" },
+  { id: "analytics", label: "Analytics", icon: "Analytics" },
+  { id: "members", label: "Members", icon: "Members" },
 ];
 
 const API_URL = "http://localhost:5000/api";
@@ -128,9 +130,8 @@ export default function Dashboard() {
     reset: resetTasks,
   } = useActionItemStore();
 
-  const isAdmin =
-    Boolean(currentWorkspace?.role === "ADMIN") ||
-    Boolean(currentWorkspace?.ownerId && currentWorkspace?.ownerId === user?.id);
+  const currentRole = getRoleFromWorkspace(currentWorkspace, user?.id);
+  const { isAdmin, canCreateGoal, canInvite, canRemoveMember, canPostAnnouncement } = usePermissions(currentRole);
 
   useEffect(() => {
     fetchUser();
@@ -439,7 +440,7 @@ export default function Dashboard() {
           title: goalTitle.trim(),
           dueDate: goalDueDate || null,
           workspaceId: currentWorkspace.id,
-          status: isAdmin ? goalStatus : undefined,
+          status: canCreateGoal ? goalStatus : undefined,
         }),
       });
 
@@ -599,10 +600,11 @@ export default function Dashboard() {
         <nav className="flex-none px-3 py-4 space-y-0.5">
           {NAV.map(item => {
             const active = activeView === item.id;
+            const IconComponent = Icons[item.icon];
             return (
               <button key={item.id} onClick={() => setActiveView(item.id)}
                 className={`w-full flex items-center gap-3 rounded-xl px-3 py-2.5 text-left transition-all text-sm ${active ? "bg-blue-100 dark:bg-blue-500/10 text-blue-700 dark:text-blue-400 font-bold border-l-[3px] border-blue-500 dark:border-blue-500 pl-[9px]" : "text-gray-600 dark:text-zinc-400 hover:bg-gray-100 dark:hover:bg-white/[0.05] font-medium"}`}>
-                <span className={active ? "text-lg" : "text-lg"}>{item.icon}</span>
+                {IconComponent && <IconComponent size={20} />}
                 {item.label}
               </button>
             );
@@ -695,8 +697,10 @@ export default function Dashboard() {
 
               {!currentWorkspace ? (
                 <div className="glass-card p-16 text-center">
-                  <p className="text-5xl mb-4">🏢</p>
-                  <p className="text-lg font-bold text-gray-700 dark:text-zinc-300 mb-4">
+                  <div className="flex justify-center mb-6">
+                    <Icons.Dashboard size={56} className="text-violet-400 dark:text-teal-400" />
+                  </div>
+                  <p className="text-lg font-bold text-gray-800 dark:text-zinc-300 mb-4">
                     Select a workspace from the sidebar
                   </p>
                   <button
@@ -719,7 +723,7 @@ export default function Dashboard() {
                           goals.length === 1
                             ? "1 goal"
                             : `${goals.length} goals`,
-                        icon: "📊",
+                        icon: <Icons.Goals size={24} className="text-blue-500 dark:text-blue-400" />,
                         progress: Math.min(100, goals.length * 10),
                         barGradient:
                           "bg-gradient-to-r from-blue-500 to-blue-600 dark:from-blue-500 dark:to-blue-600",
@@ -734,7 +738,7 @@ export default function Dashboard() {
                           0
                         ),
                         subtext: "milestones done",
-                        icon: "✓",
+                        icon: <Icons.Check size={24} className="text-emerald-500 dark:text-emerald-400" />,
                         progress: 60,
                         barGradient:
                           "bg-gradient-to-r from-emerald-500 to-emerald-600 dark:from-emerald-500 dark:to-emerald-600",
@@ -745,7 +749,7 @@ export default function Dashboard() {
                         value: goals.filter((g) => getGoalState(g) === "overdue")
                           .length,
                         subtext: "critical priority",
-                        icon: "⚠️",
+                        icon: <Icons.Activity size={24} className="text-red-500 dark:text-red-400" />,
                         progress: Math.min(
                           100,
                           goals.filter((g) => getGoalState(g) === "overdue")
@@ -759,7 +763,7 @@ export default function Dashboard() {
                         label: "Team Members",
                         value: currentWorkspace.members?.length || 1,
                         subtext: "in workspace",
-                        icon: "👥",
+                        icon: <Icons.Members size={24} className="text-purple-500 dark:text-purple-400" />,
                         progress: 75,
                         barGradient:
                           "bg-gradient-to-r from-blue-500 to-cyan-600 dark:from-blue-500 dark:to-cyan-600",
@@ -788,7 +792,7 @@ export default function Dashboard() {
                         <div className="glass-card p-6">
                           <div className="mb-4 flex items-center justify-between">
                             <h3 className="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2">
-                              <span>☐</span> Action Items
+                              <Icons.ActionItems size={20} className="text-gray-600 dark:text-gray-400" /> Action Items
                             </h3>
                             <button
                               onClick={() => setActiveView("action-items")}
@@ -809,7 +813,7 @@ export default function Dashboard() {
                         <div className="glass-card p-5">
                           <div className="flex items-center justify-between mb-3">
                             <div className="flex items-center gap-2">
-                              <span>⚡</span>
+                              <Icons.Activity size={18} className="text-gray-600 dark:text-gray-400" />
                               <h3 className="text-sm font-bold text-gray-900 dark:text-white">Activity Feed</h3>
                               <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
                             </div>
@@ -833,7 +837,7 @@ export default function Dashboard() {
                         <div className="glass-card p-5">
                           <div className="flex items-center justify-between mb-3">
                             <h3 className="text-sm font-bold text-gray-900 dark:text-white flex items-center gap-2">
-                              <span>📊</span> Tasks Overview
+                              <Icons.FileText size={18} className="text-gray-600 dark:text-gray-400" /> Tasks Overview
                             </h3>
                             <span className="text-[10px] font-medium text-gray-500 dark:text-zinc-500">This Week</span>
                           </div>
@@ -885,7 +889,7 @@ export default function Dashboard() {
                               goals.length === 1
                                 ? "1 goal"
                                 : `${goals.length} goals`,
-                            icon: "📊",
+                            icon: <Icons.Goals size={24} className="text-blue-500 dark:text-blue-400" />,
                             progress: Math.min(100, goals.length * 10),
                             barGradient:
                               "bg-gradient-to-r from-blue-500 to-blue-600 dark:from-blue-500 dark:to-blue-600",
@@ -900,7 +904,7 @@ export default function Dashboard() {
                               0
                             ),
                             subtext: "total completed",
-                            icon: "✓",
+                            icon: <Icons.Check size={24} className="text-emerald-500 dark:text-emerald-400" />,
                             progress: 60,
                             barGradient:
                               "bg-gradient-to-r from-emerald-500 to-emerald-600 dark:from-emerald-500 dark:to-emerald-600",
@@ -911,7 +915,7 @@ export default function Dashboard() {
                             value: goals.filter((g) => getGoalState(g) === "overdue")
                               .length,
                             subtext: "critical priority",
-                            icon: "⚠️",
+                            icon: <Icons.Activity size={24} className="text-red-500 dark:text-red-400" />,
                             progress: Math.min(
                               100,
                               goals.filter((g) => getGoalState(g) === "overdue")
@@ -925,7 +929,7 @@ export default function Dashboard() {
                             label: "Team Members",
                             value: currentWorkspace.members?.length || 1,
                             subtext: `${onlineUsers.length} online`,
-                            icon: "👥",
+                            icon: <Icons.Members size={24} className="text-purple-500 dark:text-purple-400" />,
                             progress: currentWorkspace.members?.length ? Math.min(100, Math.round((onlineUsers.length / currentWorkspace.members.length) * 100)) : 100,
                             barGradient:
                               "bg-gradient-to-r from-blue-500 to-cyan-600 dark:from-blue-500 dark:to-cyan-600",
@@ -950,14 +954,14 @@ export default function Dashboard() {
                       <h2 className="text-2xl font-black text-gray-800 dark:text-white">Company Milestones</h2>
                       <p className="text-gray-500 dark:text-zinc-400 mt-1">Strategic objectives for the current quarter.</p>
                     </div>
-                    {currentWorkspace && isAdmin && (
+                    {currentWorkspace && canCreateGoal && (
                       <button onClick={() => document.getElementById("goal-form").scrollIntoView({ behavior: "smooth" })} className="btn-primary flex items-center gap-1.5">
                         <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" /></svg>
                         Create New Goal
                       </button>
                     )}
                   </div>
-                  {currentWorkspace && isAdmin && (
+                  {currentWorkspace && canCreateGoal && (
                     <div id="goal-form" className="glass-card p-4 mb-6 flex gap-3 flex-wrap items-end">
                       <input placeholder="Goal title" value={goalTitle} onChange={e => setGoalTitle(e.target.value)} className="glass-input flex-1 min-w-[180px]" />
                       <input type="date" value={goalDueDate} onChange={e => setGoalDueDate(e.target.value)} className="glass-input w-40" />
@@ -1185,7 +1189,7 @@ export default function Dashboard() {
                         </div>
                         <button onClick={handleCreateWorkspace} disabled={creating} className="btn-primary w-full">{creating ? "Creating…" : "Create Workspace"}</button>
                       </div>
-                      {currentWorkspace && isAdmin && (
+                      {currentWorkspace && canInvite && (
                         <div className="space-y-2 border-t border-white/20 dark:border-white/[0.05] pt-4">
                           <p className="text-[10px] font-black uppercase tracking-widest text-gray-500 dark:text-zinc-500">Invite Member</p>
                           <div className="flex gap-2">

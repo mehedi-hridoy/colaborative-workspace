@@ -7,14 +7,14 @@ const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
 const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"] });
 
 export const metadata = {
-  title: "Team Hub — Collaborative Workspace",
+  title: "TeamFlow — Collaborative Workspace",
   description: "Modern collaborative workspace for your team",
 };
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en" className={`${geistSans.variable} ${geistMono.variable} dark`}>
-      <body className="min-h-full flex flex-col">
+    <html lang="en" className={`${geistSans.variable} ${geistMono.variable}`}>
+      <body className="min-h-full flex flex-col bg-white">
         <AuthProvider>
           <ThemeProvider>{children}</ThemeProvider>
         </AuthProvider>

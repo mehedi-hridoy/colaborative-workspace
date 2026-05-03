@@ -2,177 +2,156 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { Icons } from "../../lib/icons";
 import { useAuthStore } from "../../store/authStore";
 
 export default function LoginPage() {
-  const [isSignup, setIsSignup] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [name, setName] = useState("");
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
   const router = useRouter();
   const { fetchUser } = useAuthStore();
 
-  const handleSignup = async () => {
-    if (!email || !password || !name) {
-      alert("Please fill in all fields");
-      return;
-    }
-
+  const handleLogin = async (e) => {
+    e.preventDefault();
     setLoading(true);
-    try {
-      const res = await fetch("http://localhost:5000/api/auth/register", {
-        method: "POST",
-        credentials: "include",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ email, password, name }),
-      });
+    setError("");
 
-      const data = await res.json();
-
-      if (!res.ok) {
-        alert(data.msg || "Signup failed");
-        return;
-      }
-
-      alert("Signup successful! Now login.");
-      setIsSignup(false);
-      setEmail("");
-      setPassword("");
-      setName("");
-    } catch (err) {
-      alert("Error: " + err.message);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleLogin = async () => {
-    if (!email || !password) {
-      alert("Please enter email and password");
-      return;
-    }
-
-    setLoading(true);
     try {
       const res = await fetch("http://localhost:5000/api/auth/login", {
         method: "POST",
         credentials: "include",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
       });
 
       const data = await res.json();
 
       if (!res.ok) {
-        alert(data.msg || "Login failed");
+        setError(data.msg || data.message || "Login failed");
+        setLoading(false);
         return;
       }
 
       await fetchUser();
       router.push("/dashboard");
     } catch (err) {
-      alert("Error: " + err.message);
-    } finally {
+      setError("Network error. Please try again.");
       setLoading(false);
     }
   };
 
   return (
-    <div style={{ maxWidth: "400px", margin: "50px auto", padding: "20px" }}>
-      <h1>{isSignup ? "Sign Up" : "Login"}</h1>
+    <div className="min-h-screen bg-gradient-to-br from-[#f5f5f5] to-white flex items-center justify-center px-6">
+      <div className="w-full max-w-md">
+        {/* Logo & Heading */}
+        <div className="mb-12">
+          <div className="flex items-center gap-3 mb-8">
+            <div className="w-10 h-10 bg-black rounded-lg flex items-center justify-center">
+              <Icons.Dashboard size={24} className="text-white" />
+            </div>
+            <span className="text-xl font-semibold">TeamFlow</span>
+          </div>
 
-      <div style={{ marginBottom: "15px" }}>
-        {isSignup && (
-          <input
-            placeholder="Full Name"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            style={{
-              width: "100%",
-              padding: "10px",
-              marginBottom: "10px",
-              border: "1px solid #ccc",
-              borderRadius: "4px",
-              color: "#000",
-              backgroundColor: "#fff",
+          <h1 className="text-4xl font-normal tracking-tighter mb-3">
+            Welcome back
+          </h1>
+          <p className="text-base text-[#93939f]">
+            Sign in to continue collaborating with your team.
+          </p>
+        </div>
+
+        {/* Form */}
+        <form onSubmit={handleLogin} className="space-y-6 mb-8">
+          {/* Email */}
+          <div>
+            <label className="block text-sm font-medium mb-2">Email</label>
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="you@example.com"
+              className="w-full bg-white border border-[#e5e7eb] rounded-lg px-4 py-3 text-base focus:outline-none focus:ring-2 focus:ring-black/10 transition-all"
+              required
+            />
+          </div>
+
+          {/* Password */}
+          <div>
+            <div className="flex items-center justify-between mb-2">
+              <label className="block text-sm font-medium">Password</label>
+              <a href="#" className="text-sm text-[#1863dc] hover:underline">
+                Forgot?
+              </a>
+            </div>
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="••••••••"
+              className="w-full bg-white border border-[#e5e7eb] rounded-lg px-4 py-3 text-base focus:outline-none focus:ring-2 focus:ring-black/10 transition-all"
+              required
+            />
+          </div>
+
+          {/* Error Message */}
+          {error && (
+            <div className="bg-[#fef2f2] border border-[#fecaca] rounded-lg px-4 py-3 text-sm text-[#b30000]">
+              {error}
+            </div>
+          )}
+
+          {/* Submit Button */}
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full bg-black text-white rounded-lg py-3 font-medium hover:bg-[#17171c] disabled:opacity-50 transition-colors"
+          >
+            {loading ? "Signing in..." : "Sign In"}
+          </button>
+        </form>
+
+        {/* Divider */}
+        <div className="flex items-center gap-4 mb-8">
+          <div className="flex-1 h-px bg-[#e5e7eb]" />
+          <span className="text-sm text-[#93939f]">or</span>
+          <div className="flex-1 h-px bg-[#e5e7eb]" />
+        </div>
+
+        {/* Demo Accounts */}
+        <div className="grid grid-cols-2 gap-3 mb-8">
+          <button
+            type="button"
+            onClick={() => {
+              setEmail("admin@example.com");
+              setPassword("admin123");
             }}
-          />
-        )}
+            className="bg-[#f5f5f5] hover:bg-[#eeece7] border border-[#e5e7eb] rounded-lg px-4 py-3 text-sm font-medium transition-colors"
+          >
+            Demo Admin
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setEmail("user@example.com");
+              setPassword("user123");
+            }}
+            className="bg-[#f5f5f5] hover:bg-[#eeece7] border border-[#e5e7eb] rounded-lg px-4 py-3 text-sm font-medium transition-colors"
+          >
+            Demo User
+          </button>
+        </div>
 
-        <input
-          placeholder="Email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          style={{
-            width: "100%",
-            padding: "10px",
-            marginBottom: "10px",
-            border: "1px solid #ccc",
-            borderRadius: "4px",
-            color: "#000",
-            backgroundColor: "#fff",
-          }}
-        />
-
-        <input
-          type="password"
-          placeholder="Password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          style={{
-            width: "100%",
-            padding: "10px",
-            marginBottom: "10px",
-            border: "1px solid #ccc",
-            borderRadius: "4px",
-            color: "#000",
-            backgroundColor: "#fff",
-          }}
-        />
+        {/* Sign Up Link */}
+        <p className="text-center text-base text-[#93939f]">
+          Don't have an account?{" "}
+          <Link href="/register" className="text-black font-medium hover:underline">
+            Create one
+          </Link>
+        </p>
       </div>
-
-      <button
-        onClick={isSignup ? handleSignup : handleLogin}
-        disabled={loading}
-        style={{
-          width: "100%",
-          padding: "10px",
-          backgroundColor: loading ? "#ccc" : "#0a3d33",
-          color: "white",
-          border: "none",
-          borderRadius: "4px",
-          cursor: loading ? "not-allowed" : "pointer",
-          marginBottom: "10px",
-        }}
-      >
-        {loading ? "Loading..." : isSignup ? "Sign Up" : "Login"}
-      </button>
-
-      <button
-        onClick={() => {
-          setIsSignup(!isSignup);
-          setEmail("");
-          setPassword("");
-          setName("");
-        }}
-        style={{
-          width: "100%",
-          padding: "10px",
-          backgroundColor: "transparent",
-          color: "#0a3d33",
-          border: "1px solid #0a3d33",
-          borderRadius: "4px",
-          cursor: "pointer",
-          fontWeight: "bold",
-        }}
-      >
-        {isSignup ? "Back to Login" : "Go to Sign Up"}
-      </button>
     </div>
   );
 }

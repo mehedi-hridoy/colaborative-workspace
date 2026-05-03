@@ -1,5 +1,6 @@
 import { prisma } from "../config/db.js";
 import { isWorkspaceAdmin, canAccessWorkspace, denyWorkspaceAccess } from "../utils/workspaceAccess.js";
+import { getUserRole } from "../utils/permissions.js";
 
 export const createWorkspace = async (req, res) => {
   try {
@@ -129,7 +130,7 @@ export const inviteMember = async (req, res) => {
       where: { workspaceId, userId: user.id },
     });
 
-    const assignedRole = role === "ADMIN" ? "ADMIN" : "MEMBER";
+    const assignedRole = ["ADMIN", "MEMBER", "VIEWER"].includes(role) ? role : "MEMBER";
 
     const membership = existing
       ? await prisma.membership.update({
@@ -196,6 +197,97 @@ export const getWorkspaceMembers = async (req, res) => {
     workspace.members.forEach((m) => push(m.user, m.role));
 
     res.json(members);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+// ─── PATCH /api/workspaces/:workspaceId/members/:memberId/role ────────────────
+export const changeMemberRole = async (req, res) => {
+  try {
+    const { workspaceId, memberId } = req.params;
+    const { role } = req.body;
+
+    if (!["ADMIN", "MEMBER", "VIEWER"].includes(role)) {
+      return res.status(400).json({ msg: "Invalid role. Must be ADMIN, MEMBER, or VIEWER" });
+    }
+
+    const isAdmin = await isWorkspaceAdmin(req.user.userId, workspaceId);
+    if (!isAdmin) return denyWorkspaceAccess(res);
+
+    // Cannot change the owner's role
+    const workspace = await prisma.workspace.findUnique({
+      where: { id: workspaceId },
+      select: { ownerId: true },
+    });
+
+    const membership = await prisma.membership.findUnique({
+      where: { id: memberId },
+      include: { user: { select: { id: true, name: true, email: true } } },
+    });
+
+    if (!membership || membership.workspaceId !== workspaceId) {
+      return res.status(404).json({ msg: "Member not found" });
+    }
+
+    if (membership.userId === workspace?.ownerId) {
+      return res.status(403).json({ msg: "Cannot change the workspace owner's role" });
+    }
+
+    const updated = await prisma.membership.update({
+      where: { id: memberId },
+      data: { role },
+      include: { user: { select: { id: true, name: true, email: true, avatar: true } } },
+    });
+
+    res.json(updated);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+// ─── DELETE /api/workspaces/:workspaceId/members/:memberId ────────────────────
+export const removeMember = async (req, res) => {
+  try {
+    const { workspaceId, memberId } = req.params;
+
+    const isAdmin = await isWorkspaceAdmin(req.user.userId, workspaceId);
+    if (!isAdmin) return denyWorkspaceAccess(res);
+
+    const membership = await prisma.membership.findUnique({
+      where: { id: memberId },
+    });
+
+    if (!membership || membership.workspaceId !== workspaceId) {
+      return res.status(404).json({ msg: "Member not found" });
+    }
+
+    // Cannot remove workspace owner
+    const workspace = await prisma.workspace.findUnique({
+      where: { id: workspaceId },
+      select: { ownerId: true },
+    });
+
+    if (membership.userId === workspace?.ownerId) {
+      return res.status(403).json({ msg: "Cannot remove the workspace owner" });
+    }
+
+    await prisma.membership.delete({ where: { id: memberId } });
+    res.json({ msg: "Member removed" });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+// ─── GET /api/workspaces/:workspaceId/my-role ────────────────────────────────
+export const getMyRole = async (req, res) => {
+  try {
+    const { workspaceId } = req.params;
+    const role = await getUserRole(req.user.userId, workspaceId);
+    if (!role) return res.status(403).json({ msg: "Not a member" });
+
+    const { getPermissionsForRole } = await import("../utils/permissions.js");
+    res.json({ role, permissions: getPermissionsForRole(role) });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }

@@ -2,8 +2,8 @@ import { prisma } from "../config/db.js";
 import {
   canAccessWorkspace,
   denyWorkspaceAccess,
-  isWorkspaceAdmin,
 } from "../utils/workspaceAccess.js";
+import { hasPermission } from "../utils/permissions.js";
 import { getGoalStatus } from "../utils/goalStatus.js";
 import { ACTIVITY_TYPES } from "../utils/activityTypes.js";
 
@@ -44,15 +44,15 @@ export const createGoal = async (req, res) => {
       return res.status(400).json({ msg: "Title and workspace ID are required" });
     }
 
-    const hasAccess = await canAccessWorkspace(req.user.userId, workspaceId);
-    if (!hasAccess) {
-      return denyWorkspaceAccess(res);
+    const canCreate = await hasPermission(req.user.userId, workspaceId, "goal:create");
+    if (!canCreate) {
+      return res.status(403).json({ msg: "You do not have permission to create goals" });
     }
 
     const allowedStatuses = ["open", "in-progress", "completed"];
-    const isAdmin = await isWorkspaceAdmin(req.user.userId, workspaceId);
+    const isGoalAdmin = await hasPermission(req.user.userId, workspaceId, "goal:edit");
     const initialStatus =
-      isAdmin && allowedStatuses.includes(status) ? status : "open";
+      isGoalAdmin && allowedStatuses.includes(status) ? status : "open";
 
     const goal = await prisma.goal.create({
       data: {
@@ -104,9 +104,9 @@ export const postGoalUpdate = async (req, res) => {
       return res.status(404).json({ msg: "Goal not found" });
     }
 
-    const hasAccess = await canAccessWorkspace(req.user.userId, goal.workspaceId);
-    if (!hasAccess) {
-      return denyWorkspaceAccess(res);
+    const canEdit = await hasPermission(req.user.userId, goal.workspaceId, "goal:edit");
+    if (!canEdit) {
+      return res.status(403).json({ msg: "You do not have permission to edit this goal" });
     }
 
     const activity = await prisma.activity.create({
@@ -136,6 +136,33 @@ export const postGoalUpdate = async (req, res) => {
     });
 
     res.status(201).json(activity);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+export const deleteGoal = async (req, res) => {
+  try {
+    const { goalId } = req.params;
+
+    const goal = await prisma.goal.findUnique({
+      where: { id: goalId },
+    });
+
+    if (!goal) {
+      return res.status(404).json({ msg: "Goal not found" });
+    }
+
+    const canDelete = await hasPermission(req.user.userId, goal.workspaceId, "goal:delete");
+    if (!canDelete) {
+      return res.status(403).json({ msg: "You do not have permission to delete this goal" });
+    }
+
+    await prisma.goal.delete({
+      where: { id: goalId },
+    });
+
+    res.json({ msg: "Goal deleted successfully" });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }

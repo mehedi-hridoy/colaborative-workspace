@@ -1,6 +1,7 @@
 import { prisma } from "../config/db.js";
 import { getIO } from "../socket/index.js";
 import { canAccessWorkspace, denyWorkspaceAccess } from "../utils/workspaceAccess.js";
+import { hasPermission } from "../utils/permissions.js";
 
 // ─── Shared include shape ────────────────────────────────────────────────────
 const itemInclude = {
@@ -30,8 +31,8 @@ export const createActionItem = async (req, res) => {
     });
     if (!goal) return res.status(404).json({ msg: "Goal not found" });
 
-    const hasAccess = await canAccessWorkspace(req.user.userId, goal.workspaceId);
-    if (!hasAccess) return denyWorkspaceAccess(res);
+    const canCreate = await hasPermission(req.user.userId, goal.workspaceId, "task:create");
+    if (!canCreate) return res.status(403).json({ msg: "Permission denied to create task" });
 
     if (assigneeId) {
       const assignee = await prisma.user.findUnique({ where: { id: assigneeId }, select: { id: true } });
@@ -103,8 +104,8 @@ export const updateStatus = async (req, res) => {
     });
     if (!existing) return res.status(404).json({ msg: "Action item not found" });
 
-    const hasAccess = await canAccessWorkspace(req.user.userId, existing.goal.workspaceId);
-    if (!hasAccess) return denyWorkspaceAccess(res);
+    const canUpdateStatus = await hasPermission(req.user.userId, existing.goal.workspaceId, "task:statusUpdate");
+    if (!canUpdateStatus) return res.status(403).json({ msg: "Permission denied to update task status" });
 
     const item = await prisma.actionItem.update({
       where: { id },
@@ -131,8 +132,8 @@ export const updateActionItem = async (req, res) => {
     });
     if (!existing) return res.status(404).json({ msg: "Action item not found" });
 
-    const hasAccess = await canAccessWorkspace(req.user.userId, existing.goal.workspaceId);
-    if (!hasAccess) return denyWorkspaceAccess(res);
+    const canEdit = await hasPermission(req.user.userId, existing.goal.workspaceId, "task:edit");
+    if (!canEdit) return res.status(403).json({ msg: "Permission denied to edit task" });
 
     const item = await prisma.actionItem.update({
       where: { id },
@@ -165,8 +166,8 @@ export const deleteActionItem = async (req, res) => {
     });
     if (!existing) return res.status(404).json({ msg: "Action item not found" });
 
-    const hasAccess = await canAccessWorkspace(req.user.userId, existing.goal.workspaceId);
-    if (!hasAccess) return denyWorkspaceAccess(res);
+    const canDelete = await hasPermission(req.user.userId, existing.goal.workspaceId, "task:delete");
+    if (!canDelete) return res.status(403).json({ msg: "Permission denied to delete task" });
 
     await prisma.actionItem.delete({ where: { id } });
 

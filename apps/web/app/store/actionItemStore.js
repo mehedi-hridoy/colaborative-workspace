@@ -6,12 +6,10 @@ import { getSocket } from "../lib/socket";
 const API = "http://localhost:5000/api/action-items";
 
 export const useActionItemStore = create((set, get) => ({
-  // items keyed by goalId: { [goalId]: ActionItem[] }
   itemsByGoal: {},
-  // loading state per goalId
   loading: {},
 
-  // ─── Fetch all items for a goal ──────────────────────────────────────────
+  // ─── Fetch all items for a goal ────────────────────────────────────────────
   fetchByGoal: async (goalId) => {
     set((s) => ({ loading: { ...s.loading, [goalId]: true } }));
     try {
@@ -27,8 +25,27 @@ export const useActionItemStore = create((set, get) => ({
     }
   },
 
-  // ─── Create ──────────────────────────────────────────────────────────────
+  // ─── Create (OPTIMISTIC) ───────────────────────────────────────────────────
   createItem: async (data) => {
+    const tempId = `temp_${Date.now()}`;
+    const goalId = data.goalId;
+    const optimistic = {
+      id: tempId,
+      ...data,
+      status: data.status || "todo",
+      priority: data.priority || "medium",
+      createdAt: new Date().toISOString(),
+      _optimistic: true,
+    };
+
+    // Add immediately
+    set((s) => ({
+      itemsByGoal: {
+        ...s.itemsByGoal,
+        [goalId]: [optimistic, ...(s.itemsByGoal[goalId] || [])],
+      },
+    }));
+
     try {
       const res = await fetch(API, {
         method: "POST",
@@ -36,13 +53,44 @@ export const useActionItemStore = create((set, get) => ({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
       });
-      if (!res.ok) return null;
-      return await res.json();
-    } catch { return null; }
+      if (!res.ok) throw new Error("Create failed");
+      const real = await res.json();
+
+      // Replace temp with real
+      set((s) => ({
+        itemsByGoal: {
+          ...s.itemsByGoal,
+          [goalId]: (s.itemsByGoal[goalId] || []).map((i) =>
+            i.id === tempId ? real : i
+          ),
+        },
+      }));
+      return real;
+    } catch {
+      // Rollback
+      set((s) => ({
+        itemsByGoal: {
+          ...s.itemsByGoal,
+          [goalId]: (s.itemsByGoal[goalId] || []).filter((i) => i.id !== tempId),
+        },
+      }));
+      return null;
+    }
   },
 
-  // ─── Update status only ──────────────────────────────────────────────────
+  // ─── Update status (OPTIMISTIC) ────────────────────────────────────────────
   updateStatus: async (id, status) => {
+    const prev = { ...get().itemsByGoal };
+
+    // Optimistic: update status immediately across all goals
+    set((s) => {
+      const next = { ...s.itemsByGoal };
+      for (const gid of Object.keys(next)) {
+        next[gid] = next[gid].map((i) => (i.id === id ? { ...i, status } : i));
+      }
+      return { itemsByGoal: next };
+    });
+
     try {
       const res = await fetch(`${API}/${id}/status`, {
         method: "PATCH",
@@ -50,13 +98,17 @@ export const useActionItemStore = create((set, get) => ({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status }),
       });
-      if (!res.ok) return;
+      if (!res.ok) throw new Error("Status update failed");
       get()._applyUpdate(await res.json());
-    } catch {}
+    } catch {
+      set({ itemsByGoal: prev }); // Rollback
+    }
   },
 
-  // ─── Full update ─────────────────────────────────────────────────────────
+  // ─── Full update ───────────────────────────────────────────────────────────
   updateItem: async (id, data) => {
+    const prev = { ...get().itemsByGoal };
+
     try {
       const res = await fetch(`${API}/${id}`, {
         method: "PATCH",
@@ -64,25 +116,34 @@ export const useActionItemStore = create((set, get) => ({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
       });
-      if (!res.ok) return;
+      if (!res.ok) throw new Error("Update failed");
       get()._applyUpdate(await res.json());
-    } catch {}
+    } catch {
+      set({ itemsByGoal: prev });
+    }
   },
 
-  // ─── Delete ──────────────────────────────────────────────────────────────
+  // ─── Delete (OPTIMISTIC) ───────────────────────────────────────────────────
   deleteItem: async (id, goalId) => {
+    const prev = { ...get().itemsByGoal };
+
+    // Optimistic: remove immediately
+    set((s) => ({
+      itemsByGoal: {
+        ...s.itemsByGoal,
+        [goalId]: (s.itemsByGoal[goalId] || []).filter((i) => i.id !== id),
+      },
+    }));
+
     try {
-      await fetch(`${API}/${id}`, { method: "DELETE", credentials: "include" });
-      set((s) => ({
-        itemsByGoal: {
-          ...s.itemsByGoal,
-          [goalId]: (s.itemsByGoal[goalId] || []).filter((i) => i.id !== id),
-        },
-      }));
-    } catch {}
+      const res = await fetch(`${API}/${id}`, { method: "DELETE", credentials: "include" });
+      if (!res.ok) throw new Error("Delete failed");
+    } catch {
+      set({ itemsByGoal: prev }); // Rollback
+    }
   },
 
-  // ─── Internal: apply an updated item back into the keyed map ─────────────
+  // ─── Internal helper ───────────────────────────────────────────────────────
   _applyUpdate: (item) => {
     const goalId = item.goalId || item.goal?.id;
     if (!goalId) return;
@@ -96,7 +157,7 @@ export const useActionItemStore = create((set, get) => ({
     }));
   },
 
-  // ─── Socket listeners ────────────────────────────────────────────────────
+  // ─── Socket listeners ──────────────────────────────────────────────────────
   listenSocket: () => {
     const socket = getSocket();
     socket.off("task:new");
@@ -109,7 +170,9 @@ export const useActionItemStore = create((set, get) => ({
       set((s) => {
         const existing = s.itemsByGoal[goalId] || [];
         if (existing.some((i) => i.id === item.id)) return s;
-        return { itemsByGoal: { ...s.itemsByGoal, [goalId]: [item, ...existing] } };
+        // Remove optimistic version
+        const filtered = existing.filter((i) => !i._optimistic || i.title !== item.title);
+        return { itemsByGoal: { ...s.itemsByGoal, [goalId]: [item, ...filtered] } };
       });
     });
 

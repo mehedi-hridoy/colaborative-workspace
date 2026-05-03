@@ -1,6 +1,7 @@
-"use client";
-import TopBar from "../components/TopBar";
-import NotificationBell from "../components/NotificationBell";
+\"use client\";
+import { Icons } from \"../lib/icons\";
+import TopBar from \"../app/components/TopBar\";
+import NotificationBell from "../app/components/NotificationBell";
 
 export default function DashboardView({ user, currentWorkspace, stats, activities, setView }) {
   return (
@@ -53,18 +54,20 @@ export default function DashboardView({ user, currentWorkspace, stats, activitie
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <button onClick={() => setView("action-items")} className="flex items-center gap-3 rounded-xl border border-white/30 dark:border-white/[0.07] bg-white/20 dark:bg-zinc-900/60 p-3 hover:bg-white/35 dark:hover:bg-zinc-800/70 transition text-left">
-                  <span className="text-2xl">☰</span>
+                  <Icons.Menu size={24} className="text-gray-600 dark:text-gray-400" />
                   <div><p className="text-sm font-bold text-slate-800 dark:text-white">Action Items</p><p className="text-xs text-slate-500 dark:text-zinc-500">Manage tasks</p></div>
                 </button>
                 <button onClick={() => setView("announcements")} className="flex items-center gap-3 rounded-xl border border-white/30 dark:border-white/[0.07] bg-white/20 dark:bg-zinc-900/60 p-3 hover:bg-white/35 dark:hover:bg-zinc-800/70 transition text-left">
-                  <span className="text-2xl">📢</span>
+                  <Icons.Announcements size={24} className="text-gray-600 dark:text-gray-400" />
                   <div><p className="text-sm font-bold text-slate-800 dark:text-white">Team Feed</p><p className="text-xs text-slate-500 dark:text-zinc-500">Announcements</p></div>
                 </button>
               </div>
             </div>
           ) : (
             <div className="glass-card p-10 text-center">
-              <p className="text-4xl mb-3">🏢</p>
+              <div className="flex justify-center mb-4">
+                <Icons.Dashboard size={48} className="text-gray-400 dark:text-gray-600" />
+              </div>
               <p className="text-lg font-bold text-slate-700 dark:text-zinc-300">Select a workspace</p>
               <p className="text-sm text-slate-500 dark:text-zinc-500 mt-1">Choose from the sidebar to get started</p>
             </div>
