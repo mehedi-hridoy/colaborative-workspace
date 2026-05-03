@@ -37,7 +37,7 @@ const NAV = [
   { id: "members", label: "Members", icon: "Members" },
 ];
 
-const API_URL = "http://localhost:5000/api";
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
 
 const statusMeta = {
   "no-milestones": { label: "Open", cls: "status-open", bar: "bg-gray-400 dark:bg-gray-600" },
@@ -331,7 +331,9 @@ export default function Dashboard() {
       });
 
       if (!res.ok) {
-        throw new Error("Failed to create workspace");
+        const errorText = await res.text();
+        console.error("Create workspace failed:", res.status, res.statusText, errorText);
+        throw new Error(`Failed to create workspace (${res.status}): ${errorText.slice(0,100)}`);
       }
 
       const newWorkspace = await res.json();
@@ -342,7 +344,7 @@ export default function Dashboard() {
       setWorkspaceColor("#0f766e");
       await refreshWorkspaces();
     } catch (error) {
-      alert("Error creating workspace: " + error.message);
+      alert("Error creating workspace: " + error.message + "\\nCheck browser console and ensure backend is running at localhost:5000");
     } finally {
       setCreating(false);
     }
@@ -703,11 +705,13 @@ export default function Dashboard() {
                   <p className="text-lg font-bold text-slate-700 dark:text-zinc-300 mb-4">
                     Select a workspace from the sidebar
                   </p>
-                  <button
+<button
                     onClick={() => setShowCreateWs(true)}
-                    className="btn-primary"
+                    disabled={creating}
+                    className="btn-primary opacity-75 cursor-not-allowed" 
+                    title={creating ? "Creating..." : "Create new workspace"}
                   >
-                    Create Workspace
+                    {creating ? "Creating..." : "Create Workspace"}
                   </button>
                 </div>
               ) : (

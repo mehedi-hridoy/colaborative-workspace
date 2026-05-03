@@ -9,10 +9,33 @@ export default function ThemeProvider({ children }) {
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    const saved = localStorage.getItem("th") || "light";
-    setTheme(saved);
-    document.documentElement.classList.toggle("dark", saved === "dark");
+    // System preference first, then localStorage override
+    const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    const saved = localStorage.getItem("th");
+    const initialTheme = saved !== null ? saved : systemPrefersDark ? 'dark' : 'light';
+    
+    setTheme(initialTheme);
+    document.documentElement.classList.toggle("dark", initialTheme === "dark");
     setMounted(true);
+  }, []);
+
+  // Listen for system theme changes
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    const saved = localStorage.getItem("th");
+    
+    // Only auto-toggle if no manual preference saved
+    const handleChange = (e) => {
+      if (saved !== null) return; // Manual override exists
+      const newTheme = e.matches ? 'dark' : 'light';
+      setTheme(newTheme);
+      document.documentElement.classList.toggle("dark", newTheme === "dark");
+    };
+    
+    mediaQuery.addEventListener('change', handleChange);
+    return () => mediaQuery.removeEventListener('change', handleChange);
   }, []);
 
   const toggle = () => {

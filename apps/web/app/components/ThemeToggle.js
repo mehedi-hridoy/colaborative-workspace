@@ -8,7 +8,7 @@ export default function ThemeToggle() {
   return (
     <button
       onClick={toggle}
-      title={isDark ? "Switch to Light Mode" : "Switch to Dark Mode"}
+      title={isDark ? "Switch to Light Mode (system: auto)" : "Switch to Dark Mode (system: auto)"}
       style={{
         width: 52, height: 28,
         borderRadius: 999,

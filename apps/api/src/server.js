@@ -17,6 +17,9 @@ import uploadRoutes from "./routes/upload.routes.js";
 import analyticsRoutes from "./routes/analytics.routes.js";
 import downloadRoutes from "./routes/download.routes.js";
 import filesRoutes from "./routes/files.routes.js";
+import swaggerUi from "swagger-ui-express";
+import swaggerSpec from "./config/swagger.js";
+
 
 dotenv.config();
 
@@ -40,6 +43,17 @@ app.use("/api/upload", uploadRoutes);
 app.use("/api/analytics", analyticsRoutes);
 app.use("/api/download", downloadRoutes);
 app.use("/api/files", filesRoutes);
+
+// Swagger documentation
+app.use("/api/docs", swaggerUi.serve);
+app.get("/api/docs", swaggerUi.setup(swaggerSpec));
+
+
+app.get("/api/test", (req, res) => {
+  res.send("API test route works!");
+});
+
+
 
 // test route
 app.get("/", (req, res) => {
