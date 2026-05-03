@@ -24,6 +24,7 @@ model User {
   actions       Notification[] @relation("ActorNotifications")
   notifications Notification[] @relation("UserNotifications")
   reactions     Reaction[]
+  refreshTokens RefreshToken[]
   workspaces    Workspace[]    @relation("workspace_owner")
 }
 
@@ -60,6 +61,7 @@ model Goal {
   workspaceId String
   ownerId     String
   createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
   actionItems ActionItem[]
   activities  Activity[]
   attachments Attachment[]
@@ -148,6 +150,7 @@ model ActionItem {
   priority    String    @default("medium")
   dueDate     DateTime?
   createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
   goalId      String
   assigneeId  String?
   assignee    User?     @relation("AssignedTasks", fields: [assigneeId], references: [id])
@@ -168,4 +171,13 @@ model Attachment {
   announcement   Announcement? @relation(fields: [announcementId], references: [id])
   goal           Goal?         @relation(fields: [goalId], references: [id])
   user           User          @relation(fields: [userId], references: [id])
+}
+
+model RefreshToken {
+  id        String   @id @default(uuid())
+  token     String   @unique
+  userId    String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }

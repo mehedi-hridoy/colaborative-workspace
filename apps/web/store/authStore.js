@@ -23,6 +23,25 @@ export const useAuthStore = create((set) => ({
     }
   },
 
+  refreshToken: async () => {
+    try {
+      const res = await fetch("http://localhost:5000/api/auth/refresh", {
+        method: "POST",
+        credentials: "include",
+      });
+
+      if (!res.ok) {
+        throw new Error("Token refresh failed");
+      }
+
+      return true;
+    } catch (err) {
+      console.error("Token refresh error:", err);
+      set({ user: null });
+      return false;
+    }
+  },
+
   logout: async () => {
     await fetch("http://localhost:5000/api/auth/logout", {
       method: "POST",
