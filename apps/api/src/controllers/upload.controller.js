@@ -23,7 +23,8 @@ export const uploadAvatar = async (req, res) => {
     const storedName = `avatar_${req.user.userId}_${Date.now()}${ext}`;
     fs.writeFileSync(path.join(UPLOADS_DIR, storedName), req.file.buffer);
 
-    const avatarUrl = `http://localhost:5000/api/files/${storedName}`;
+    const baseUrl = process.env.API_URL || "http://localhost:5000";
+    const avatarUrl = `${baseUrl}/api/files/${storedName}`;
     await prisma.user.update({
       where: { id: req.user.userId },
       data: { avatar: avatarUrl },
@@ -52,7 +53,8 @@ export const uploadFile = async (req, res) => {
     fs.writeFileSync(path.join(UPLOADS_DIR, storedName), req.file.buffer);
     console.log(`📁 Saved: ${originalName} → ${storedName} (${req.file.size} bytes)`);
 
-    const fileUrl = `http://localhost:5000/api/files/${storedName}`;
+    const baseUrl = process.env.API_URL || "http://localhost:5000";
+    const fileUrl = `${baseUrl}/api/files/${storedName}`;
 
     const data = {
       url: fileUrl,

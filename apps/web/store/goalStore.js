@@ -29,7 +29,7 @@ export const useGoalStore = create((set, get) => ({
     set((s) => ({ goals: [optimistic, ...s.goals] }));
 
     try {
-      const res = await fetch("http://localhost:5000/api/goals", {
+      const res = await fetch( `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/goals` , {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },

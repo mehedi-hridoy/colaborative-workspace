@@ -30,7 +30,7 @@ export default function AnnouncementInput({ workspaceId }) {
       formData.append("announcementId", ann.id);
 
       try {
-        const uploadRes = await fetch("http://localhost:5000/api/upload/file", {
+        const uploadRes = await fetch( `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/upload/file` , {
           method: "POST",
           body: formData,
           credentials: "include",

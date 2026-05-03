@@ -37,7 +37,7 @@ const NAV = [
   { id: "members", label: "Members", icon: "Members" },
 ];
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
+const API_URL = process.env.NEXT_PUBLIC_API_URL ||  `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api` ;
 
 const statusMeta = {
   "no-milestones": { label: "Open", cls: "status-open", bar: "bg-gray-400 dark:bg-gray-600" },

@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import { API_BASE_URL } from "../app/lib/constants";
 
 export const useAuthStore = create((set) => ({
   user: null,
@@ -8,7 +9,7 @@ export const useAuthStore = create((set) => ({
 
   fetchUser: async () => {
     try {
-      const res = await fetch("http://localhost:5000/api/auth/me", {
+      const res = await fetch(`${API_BASE_URL}/api/auth/me`, {
         credentials: "include",
       });
 
@@ -25,7 +26,7 @@ export const useAuthStore = create((set) => ({
 
   refreshToken: async () => {
     try {
-      const res = await fetch("http://localhost:5000/api/auth/refresh", {
+      const res = await fetch(`${API_BASE_URL}/api/auth/refresh`, {
         method: "POST",
         credentials: "include",
       });
@@ -43,7 +44,7 @@ export const useAuthStore = create((set) => ({
   },
 
   logout: async () => {
-    await fetch("http://localhost:5000/api/auth/logout", {
+    await fetch(`${API_BASE_URL}/api/auth/logout`, {
       method: "POST",
       credentials: "include",
     });

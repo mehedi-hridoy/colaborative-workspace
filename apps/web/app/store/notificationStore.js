@@ -3,7 +3,7 @@
 import { create } from "zustand";
 import { getSocket } from "../lib/socket";
 
-const API = "http://localhost:5000/api/notifications";
+const API =  `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/notifications` ;
 
 export const useNotificationStore = create((set, get) => ({
   notifications: [],

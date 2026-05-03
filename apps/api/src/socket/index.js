@@ -37,7 +37,7 @@ const getUserIdFromSocket = (socket) => {
 export const initSocket = (server) => {
   io = new Server(server, {
     cors: {
-      origin: "http://localhost:3000",
+      origin: process.env.CLIENT_URL || "http://localhost:3000",
       credentials: true,
     },
   });

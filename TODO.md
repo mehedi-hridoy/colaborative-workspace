@@ -18,11 +18,9 @@
 - ✅ `apps/api/prisma/seed.js` - demo user/workspace/goals
 - [ ] `apps/api/prisma/seed.js` - demo user/workspace/goals
 
-### 3. Git & Push ✅ [PENDING]
+### 3. Git & Push ✅ **COMPLETE**
 ```
-git add .
-git commit -m "docs(deploy): complete README + seed script for Railway"
-git push
+git add . && git commit -m "docs(deploy): complete README with Railway guide + seed script" && git push
 ```
 
 ### 4. Local Prep [USER]
