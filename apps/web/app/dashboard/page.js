@@ -667,4 +667,10 @@ export default function Dashboard() {
             <h1 className="text-2xl font-black text-slate-700 dark:text-white capitalize">
               {NAV.find(n => n.id === activeView)?.label || "Dashboard"}
             </h1>
+          </div>
+        </header>
+      </div>
+    </div>
+  );
+}
 
