@@ -19,6 +19,7 @@ import downloadRoutes from "./routes/download.routes.js";
 import filesRoutes from "./routes/files.routes.js";
 import swaggerUi from "swagger-ui-express";
 import swaggerSpec from "./config/swagger.js";
+import { corsOriginValidator } from "./config/cors.js";
 
 
 dotenv.config();
@@ -26,7 +27,7 @@ dotenv.config();
 const app = express();
 
 // middleware
-app.use(cors({ credentials: true, origin: process.env.CLIENT_URL || "http://localhost:3000" }));
+app.use(cors({ credentials: true, origin: corsOriginValidator }));
 app.use(cookieParser());
 app.use(express.json());
 

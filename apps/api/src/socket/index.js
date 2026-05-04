@@ -2,6 +2,7 @@ import { Server } from "socket.io";
 import jwt from "jsonwebtoken";
 import { prisma } from "../config/db.js";
 import { canAccessWorkspace } from "../utils/workspaceAccess.js";
+import { corsOriginValidator } from "../config/cors.js";
 
 let io;
 
@@ -37,7 +38,7 @@ const getUserIdFromSocket = (socket) => {
 export const initSocket = (server) => {
   io = new Server(server, {
     cors: {
-      origin: process.env.CLIENT_URL || "http://localhost:3000",
+      origin: corsOriginValidator,
       credentials: true,
     },
   });
