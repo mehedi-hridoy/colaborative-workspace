@@ -42,7 +42,7 @@ export default function LandingPage() {
           <h1 className="text-7xl md:text-8xl font-normal leading-none tracking-tighter mb-8">
             Collaborate with <span className="bg-gradient-to-r from-black via-[#003c33] to-black bg-clip-text text-transparent">clarity</span>
           </h1>
-          <p className="text-lg md:text-xl text-[#93939f] mb-12 max-w-2xl mx-auto leading-relaxed">
+          <p className="text-lg md:text-xl text-gray-600 mb-12 max-w-2xl mx-auto leading-relaxed">
             TeamFlow brings your team together with goal tracking, real-time collaboration, and unified communication. Ship faster. Organize better.
           </p>
 
@@ -72,7 +72,7 @@ export default function LandingPage() {
                 <Icons.Goals size={24} className="text-white" />
               </div>
               <h3 className="text-2xl font-normal mb-4">Goal Tracking</h3>
-              <p className="text-base text-[#75758a] leading-relaxed">
+              <p className="text-base text-gray-700 leading-relaxed">
                 Set team objectives, create milestones, and track progress in real-time with granular insights.
               </p>
             </div>
@@ -82,7 +82,7 @@ export default function LandingPage() {
                 <Icons.ActionItems size={24} className="text-white" />
               </div>
               <h3 className="text-2xl font-normal mb-4">Task Management</h3>
-              <p className="text-base text-[#75758a] leading-relaxed">
+              <p className="text-base text-gray-700 leading-relaxed">
                 Kanban boards, drag-and-drop workflow, and smart assignments keep tasks moving forward.
               </p>
             </div>
@@ -92,8 +92,17 @@ export default function LandingPage() {
                 <Icons.Announcements size={24} className="text-white" />
               </div>
               <h3 className="text-2xl font-normal mb-4">Communication</h3>
-              <p className="text-base text-[#75758a] leading-relaxed">
+              <p className="text-base text-gray-700 leading-relaxed">
                 Rich-text announcements, real-time reactions, and activity feed in one place.
+              </p>
+            </div>
+            <div className="bg-white rounded-lg p-8 border border-[#f2f2f2]">
+              <div className="w-12 h-12 bg-[#ff7759] rounded-lg flex items-center justify-center mb-6">
+                <Icons.Members size={24} className="text-white" />
+              </div>
+              <h3 className="text-2xl font-normal mb-4">Team Presence</h3>
+              <p className="text-base text-gray-700 leading-relaxed">
+                See who's online, manage permissions by role, and scale collaboration seamlessly.
               </p>
             </div>
 
@@ -102,7 +111,7 @@ export default function LandingPage() {
                 <Icons.Members size={24} className="text-white" />
               </div>
               <h3 className="text-2xl font-normal mb-4">Team Presence</h3>
-              <p className="text-base text-[#75758a] leading-relaxed">
+              <p className="text-base text-gray-700 leading-relaxed">
                 See who's online, manage permissions by role, and scale collaboration seamlessly.
               </p>
             </div>
@@ -112,7 +121,7 @@ export default function LandingPage() {
                 <Icons.Analytics size={24} className="text-white" />
               </div>
               <h3 className="text-2xl font-normal mb-4">Analytics</h3>
-              <p className="text-base text-[#75758a] leading-relaxed">
+              <p className="text-base text-gray-700 leading-relaxed">
                 CSV exports, goal charts, and team productivity insights at your fingertips.
               </p>
             </div>
@@ -122,7 +131,7 @@ export default function LandingPage() {
                 <Icons.Activity size={24} className="text-white" />
               </div>
               <h3 className="text-2xl font-normal mb-4">Real-Time Sync</h3>
-              <p className="text-base text-[#75758a] leading-relaxed">
+              <p className="text-base text-gray-700 leading-relaxed">
                 Socket.io-powered updates ensure your team stays in sync across all devices.
               </p>
             </div>
@@ -145,7 +154,7 @@ export default function LandingPage() {
                   </div>
                   <div>
                     <h3 className="text-xl font-normal mb-2 text-black">Zero Learning Curve</h3>
-                    <p className="text-base text-[#212121]">Intuitive interface designed for humans, not robots.</p>
+                    <p className="text-base text-gray-800">Intuitive interface designed for humans, not robots.</p>
                   </div>
                 </li>
                 <li className="flex gap-4">
@@ -154,7 +163,7 @@ export default function LandingPage() {
                   </div>
                   <div>
                     <h3 className="text-xl font-normal mb-2 text-black">Real-Time Collaboration</h3>
-                    <p className="text-base text-[#212121]">Socket.io-powered instant updates for all team members.</p>
+                    <p className="text-base text-gray-800">Socket.io-powered instant updates for all team members.</p>
                   </div>
                 </li>
                 <li className="flex gap-4">
@@ -163,7 +172,7 @@ export default function LandingPage() {
                   </div>
                   <div>
                     <h3 className="text-xl font-normal mb-2 text-black">Role-Based Access</h3>
-                    <p className="text-base text-[#212121]">Fine-grained permissions ensure data stays secure.</p>
+                    <p className="text-base text-gray-800">Fine-grained permissions ensure data stays secure.</p>
                   </div>
                 </li>
               </ul>
@@ -174,7 +183,7 @@ export default function LandingPage() {
                 <div className="w-20 h-20 bg-black rounded-lg mx-auto mb-6 flex items-center justify-center">
                   <Icons.Dashboard size={40} className="text-white" />
                 </div>
-                <p className="text-[#75758a]">Dashboard Preview</p>
+                <p className="text-gray-700">Dashboard Preview</p>
               </div>
             </div>
           </div>
@@ -214,22 +223,22 @@ export default function LandingPage() {
             <div>
               <h3 className="font-semibold mb-4 text-sm uppercase tracking-wide text-white">Product</h3>
               <ul className="space-y-2 text-sm text-white">
-                <li><a href="#" className="hover:text-[#93939f]">Features</a></li>
-                <li><a href="#" className="hover:text-[#93939f]">Security</a></li>
+                <li><a href="#" className="hover:text-gray-400">Features</a></li>
+                <li><a href="#" className="hover:text-gray-400">Security</a></li>
               </ul>
             </div>
             <div>
               <h3 className="font-semibold mb-4 text-sm uppercase tracking-wide text-white">Company</h3>
               <ul className="space-y-2 text-sm text-white">
-                <li><a href="#" className="hover:text-[#93939f]">About</a></li>
-                <li><a href="#" className="hover:text-[#93939f]">Blog</a></li>
+                <li><a href="#" className="hover:text-gray-400">About</a></li>
+                <li><a href="#" className="hover:text-gray-400">Blog</a></li>
               </ul>
             </div>
             <div>
               <h3 className="font-semibold mb-4 text-sm uppercase tracking-wide text-white">Legal</h3>
               <ul className="space-y-2 text-sm text-white">
-                <li><a href="#" className="hover:text-[#93939f]">Privacy</a></li>
-                <li><a href="#" className="hover:text-[#93939f]">Terms</a></li>
+                <li><a href="#" className="hover:text-gray-400">Privacy</a></li>
+                <li><a href="#" className="hover:text-gray-400">Terms</a></li>
               </ul>
             </div>
           </div>

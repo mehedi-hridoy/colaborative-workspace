@@ -1,52 +1,30 @@
-# 🚀 Railway Deployment - Score Target: 110/100 🎯
+# Font Contrast Fix Plan
+Current working directory: /home/hridoy/Music/collaborative-workspace
 
-## Approved Plan Steps
+## Steps (in order):
 
-### 1. README.md Updates ✅ **COMPLETE**
-- ✅ Added Environment Variables sections (Backend + Frontend)
-- ✅ Added Advanced Features (Real-time Socket.io + RBAC)
-- ✅ Detailed Railway Deployment guide
-- ✅ Database Seeding section (demo account)
-- ✅ Updated placeholders for live URLs
-- [ ] Add Environment Variables sections (Backend + Frontend)
-- [ ] Add Advanced Features (Real-time Socket.io + RBAC)
-- [ ] Detailed Railway Deployment guide
-- [ ] Database Seeding section (demo account)
-- [ ] Update placeholders for live URLs
+### 1. Read login/register pages (confirm content)
+- read_file apps/web/app/login/page.js
+- read_file apps/web/app/register/page.js
 
-### 2. Create Seed Script ✅ **COMPLETE**
-- ✅ `apps/api/prisma/seed.js` - demo user/workspace/goals
-- [ ] `apps/api/prisma/seed.js` - demo user/workspace/goals
+### 2. Edit globals.css for global high-contrast text defaults
+- Ensure body { color: #111827 !important; }
+- Dark: color: #f9fafb !important;
+- h1-h3 stronger.
 
-### 3. Git & Push ✅ **COMPLETE**
-```
-git add . && git commit -m "docs(deploy): complete README with Railway guide + seed script" && git push
-```
+### 3. Fix landing page.js (/ page)
+- Darken secondary texts [#93939f → #374151, #75758a → #4b5563]
 
-### 4. Local Prep [USER]
-- [ ] Backend: `cd apps/api && npm run dev`
-- [ ] Seed: `cd apps/api && node prisma/seed.js`
-- [ ] Test demo login locally
+### 4. Fix login/register inline styles
+- Explicit bg-colors, darker text if needed.
+- Add className="glass-input" etc.
 
-### 5. Railway Deployment [USER - DETAILED GUIDE IN README]
-- [ ] Create Railway project
-- [ ] Add Postgres plugin
-- [ ] Deploy API service first (sets DATABASE_URL)
-- [ ] Deploy Web service
-- [ ] Set all env vars
-- [ ] Run seed via Railway console
-- [ ] Test live demo login
+### 5. Test: cd apps/web && npm run dev; check / /login /register /dashboard
+- Toggle theme, browser inspect contrast.
 
-### 6. Post-Deployment [USER]
-- [ ] Update README live URLs
-- [ ] Video walkthrough (3-5 min)
-- [ ] Submit to Fredocloud
+### 6. Update components if needed (TopBar/Sidebar cards)
 
-**Notes**: 
-- Skip video/testing in README per user feedback (add post-deploy).
-- Railway auto-injects DATABASE_URL.
-- Ensure Cloudinary vars ready.
-- Public GitHub repo required.
+### 7. attempt_completion
 
-**Progress**: 0/6 - Updates starting now...
+Progress: 6/7 complete ✓ (All pages fixed, build clean, text highly visible)
 

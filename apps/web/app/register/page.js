@@ -72,7 +72,7 @@ export default function RegisterPage() {
           <h1 className="text-4xl font-normal tracking-tighter mb-3">
             Get started today
           </h1>
-          <p className="text-base text-[#93939f]">
+          <p className="text-base text-gray-600">
             Create your account and start collaborating with your team.
           </p>
         </div>
@@ -124,7 +124,7 @@ export default function RegisterPage() {
               className="w-full bg-white border border-[#e5e7eb] rounded-lg px-4 py-3 text-base focus:outline-none focus:ring-2 focus:ring-black/10 transition-all"
               required
             />
-            <p className="text-xs text-[#93939f] mt-2">At least 6 characters</p>
+            <p className="text-xs text-gray-600 mt-2">At least 6 characters</p>
           </div>
 
           {/* Confirm Password */}
@@ -148,7 +148,7 @@ export default function RegisterPage() {
           )}
 
           {/* Terms */}
-          <p className="text-xs text-[#93939f] leading-relaxed">
+          <p className="text-xs text-gray-600 leading-relaxed">
             By creating an account, you agree to our{" "}
             <a href="#" className="text-black hover:underline">
               Terms of Service
@@ -171,7 +171,7 @@ export default function RegisterPage() {
         </form>
 
         {/* Sign In Link */}
-        <p className="text-center text-base text-[#93939f]">
+        <p className="text-center text-base text-gray-600">
           Already have an account?{" "}
           <Link href="/login" className="text-black font-medium hover:underline">
             Sign in

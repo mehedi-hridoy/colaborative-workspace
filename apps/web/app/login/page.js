@@ -58,7 +58,7 @@ export default function LoginPage() {
           <h1 className="text-4xl font-normal tracking-tighter mb-3">
             Welcome back
           </h1>
-          <p className="text-base text-[#93939f]">
+          <p className="text-base text-gray-600">
             Sign in to continue collaborating with your team.
           </p>
         </div>
@@ -116,7 +116,7 @@ export default function LoginPage() {
         {/* Divider */}
         <div className="flex items-center gap-4 mb-8">
           <div className="flex-1 h-px bg-[#e5e7eb]" />
-          <span className="text-sm text-[#93939f]">or</span>
+          <span className="text-sm text-gray-600">or</span>
           <div className="flex-1 h-px bg-[#e5e7eb]" />
         </div>
 
@@ -145,7 +145,7 @@ export default function LoginPage() {
         </div>
 
         {/* Sign Up Link */}
-        <p className="text-center text-base text-[#93939f]">
+        <p className="text-center text-base text-gray-600">
           Don't have an account?{" "}
           <Link href="/register" className="text-black font-medium hover:underline">
             Create one
