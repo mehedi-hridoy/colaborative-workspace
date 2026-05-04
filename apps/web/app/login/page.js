@@ -44,22 +44,22 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#f5f5f5] to-white flex items-center justify-center px-6">
-      <div className="w-full max-w-md">
+    <div className="min-h-screen bg-[radial-gradient(circle_at_top,_#dbeafe_0%,_#eff6ff_25%,_#f8fafc_65%)] flex items-center justify-center px-6 py-14">
+      <div className="w-full max-w-md bg-white/95 backdrop-blur rounded-2xl border border-[#d9e1ec] shadow-[0_20px_60px_rgba(15,23,42,0.15)] p-8 md:p-10">
         {/* Logo & Heading */}
-        <div className="mb-12">
+        <div className="mb-10">
           <div className="flex items-center gap-3 mb-8">
-            <div className="w-10 h-10 bg-black rounded-lg flex items-center justify-center">
+            <div className="w-10 h-10 bg-[#0f172a] rounded-lg flex items-center justify-center shadow-lg shadow-slate-900/20">
               <Icons.Dashboard size={24} className="text-white" />
             </div>
-            <span className="text-xl font-semibold">TeamFlow</span>
+            <span className="text-xl font-semibold text-[#0f172a]">TeamFlow</span>
           </div>
 
-          <h1 className="text-4xl font-normal tracking-tighter mb-3" style={{color: '#000000'}}>
+          <h1 className="text-4xl font-black tracking-tight mb-3" style={{color: '#000000'}}>
             Welcome back
           </h1>
-          <p className="text-base text-gray-600">
-            Sign in to continue collaborating with your team.
+          <p className="text-base text-slate-600">
+            Sign in to run your workspace with total clarity.
           </p>
         </div>
 
@@ -73,7 +73,7 @@ export default function LoginPage() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="you@example.com"
-              className="w-full bg-white border border-[#e5e7eb] rounded-lg px-4 py-3 text-base focus:outline-none focus:ring-2 focus:ring-black/10 transition-all"
+              className="w-full bg-white border border-[#d3dbe7] rounded-xl px-4 py-3 text-base text-black placeholder:text-gray-400 caret-black focus:outline-none focus:ring-2 focus:ring-[#0f172a]/10 focus:border-[#0f172a] transition-all"
               required
             />
           </div>
@@ -91,7 +91,7 @@ export default function LoginPage() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="••••••••"
-              className="w-full bg-white border border-[#e5e7eb] rounded-lg px-4 py-3 text-base focus:outline-none focus:ring-2 focus:ring-black/10 transition-all"
+              className="w-full bg-white border border-[#d3dbe7] rounded-xl px-4 py-3 text-base text-black placeholder:text-gray-400 caret-black focus:outline-none focus:ring-2 focus:ring-[#0f172a]/10 focus:border-[#0f172a] transition-all"
               required
             />
           </div>
@@ -107,7 +107,7 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-black text-white rounded-lg py-3 font-medium hover:bg-[#17171c] disabled:opacity-50 transition-colors"
+            className="w-full bg-[#0f172a] text-white rounded-xl py-3 font-semibold hover:bg-[#020617] disabled:opacity-50 transition-colors shadow-[0_10px_24px_rgba(15,23,42,0.2)]"
           >
             {loading ? "Signing in..." : "Sign In"}
           </button>
@@ -128,7 +128,7 @@ export default function LoginPage() {
               setEmail("admin@example.com");
               setPassword("admin123");
             }}
-            className="bg-[#f5f5f5] hover:bg-[#eeece7] border border-[#e5e7eb] rounded-lg px-4 py-3 text-sm font-medium transition-colors"
+            className="bg-[#f8fafc] hover:bg-[#f1f5f9] border border-[#dbe3ee] rounded-xl px-4 py-3 text-sm font-semibold text-slate-700 transition-colors"
           >
             Demo Admin
           </button>
@@ -138,7 +138,7 @@ export default function LoginPage() {
               setEmail("user@example.com");
               setPassword("user123");
             }}
-            className="bg-[#f5f5f5] hover:bg-[#eeece7] border border-[#e5e7eb] rounded-lg px-4 py-3 text-sm font-medium transition-colors"
+            className="bg-[#f8fafc] hover:bg-[#f1f5f9] border border-[#dbe3ee] rounded-xl px-4 py-3 text-sm font-semibold text-slate-700 transition-colors"
           >
             Demo User
           </button>
