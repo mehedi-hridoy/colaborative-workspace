@@ -55,7 +55,7 @@ export default function LoginPage() {
             <span className="text-xl font-semibold">TeamFlow</span>
           </div>
 
-          <h1 className="text-4xl font-normal tracking-tighter mb-3">
+          <h1 className="text-4xl font-normal tracking-tighter mb-3" style={{color: '#000000'}}>
             Welcome back
           </h1>
           <p className="text-base text-gray-600">
@@ -67,7 +67,7 @@ export default function LoginPage() {
         <form onSubmit={handleLogin} className="space-y-6 mb-8">
           {/* Email */}
           <div>
-            <label className="block text-sm font-medium mb-2">Email</label>
+            <label className="block text-sm font-medium mb-2" style={{color: '#000000'}}>Email</label>
             <input
               type="email"
               value={email}
@@ -81,7 +81,7 @@ export default function LoginPage() {
           {/* Password */}
           <div>
             <div className="flex items-center justify-between mb-2">
-              <label className="block text-sm font-medium">Password</label>
+              <label className="block text-sm font-medium" style={{color: '#000000'}}>Password</label>
               <a href="#" className="text-sm text-[#1863dc] hover:underline">
                 Forgot?
               </a>

@@ -62,7 +62,7 @@ export default function LandingPage() {
       {/* FEATURES SECTION */}
       <section id="features" className="py-24 px-6 bg-[#edfce9]">
         <div className="max-w-6xl mx-auto">
-          <h2 className="text-5xl md:text-6xl font-normal tracking-tighter mb-20 text-center text-black">
+          <h2 className="text-5xl md:text-6xl font-bold tracking-tighter mb-20 text-center" style={{color: '#000000'}}>
             Built for modern teams
           </h2>
 

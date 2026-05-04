@@ -69,7 +69,7 @@ export default function RegisterPage() {
             <span className="text-xl font-semibold">TeamFlow</span>
           </div>
 
-          <h1 className="text-4xl font-normal tracking-tighter mb-3">
+          <h1 className="text-4xl font-normal tracking-tighter mb-3" style={{color: '#000000'}}>
             Get started today
           </h1>
           <p className="text-base text-gray-600">
@@ -89,7 +89,7 @@ export default function RegisterPage() {
         <form onSubmit={handleRegister} className="space-y-6 mb-8">
           {/* Full Name */}
           <div>
-            <label className="block text-sm font-medium mb-2">Full Name</label>
+            <label className="block text-sm font-medium mb-2" style={{color: '#000000'}}>Full Name</label>
             <input
               type="text"
               value={name}
@@ -102,7 +102,7 @@ export default function RegisterPage() {
 
           {/* Email */}
           <div>
-            <label className="block text-sm font-medium mb-2">Email</label>
+            <label className="block text-sm font-medium mb-2" style={{color: '#000000'}}>Email</label>
             <input
               type="email"
               value={email}
@@ -115,7 +115,7 @@ export default function RegisterPage() {
 
           {/* Password */}
           <div>
-            <label className="block text-sm font-medium mb-2">Password</label>
+            <label className="block text-sm font-medium mb-2" style={{color: '#000000'}}>Password</label>
             <input
               type="password"
               value={password}
@@ -129,7 +129,7 @@ export default function RegisterPage() {
 
           {/* Confirm Password */}
           <div>
-            <label className="block text-sm font-medium mb-2">Confirm Password</label>
+            <label className="block text-sm font-medium mb-2" style={{color: '#000000'}}>Confirm Password</label>
             <input
               type="password"
               value={confirmPassword}
