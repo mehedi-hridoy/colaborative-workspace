@@ -670,7 +670,7 @@ export default function Dashboard() {
           </div>
         </header>
       </div>
-    </div>
+    </main>
   );
 }
 
