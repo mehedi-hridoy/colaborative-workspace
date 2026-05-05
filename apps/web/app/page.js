@@ -42,8 +42,8 @@ export default function LandingPage() {
           <p className="mb-5 text-sm font-semibold uppercase tracking-[0.28em] text-slate-500">
             Collaborative workspace for modern teams
           </p>
-          <h1 className="text-6xl md:text-8xl font-semibold leading-[0.95] tracking-tight mb-8 text-slate-950">
-            Work together with <span className="bg-gradient-to-r from-slate-950 via-slate-700 to-slate-950 bg-clip-text text-transparent">clarity</span>
+          <h1 className="text-6xl md:text-8xl font-semibold leading-[0.95] tracking-tight mb-8 text-black">
+            Work together with <span className="text-black">clarity</span>
           </h1>
           <p className="text-lg md:text-xl text-slate-600 mb-12 max-w-2xl mx-auto leading-8">
             TeamFlow keeps goals, tasks, and team updates in one calm workspace so your team can move faster with less noise.
@@ -151,7 +151,7 @@ export default function LandingPage() {
               <p className="text-sm font-semibold uppercase tracking-[0.28em] text-slate-500 mb-4">
                 Why teams choose TeamFlow
               </p>
-              <h2 className="text-4xl md:text-5xl font-semibold tracking-tight mb-12 text-slate-950 leading-tight">
+              <h2 className="text-4xl md:text-5xl font-semibold tracking-tight mb-12 text-black leading-tight">
                 A simpler way to stay aligned and move faster
               </h2>
               <ul className="space-y-8">
