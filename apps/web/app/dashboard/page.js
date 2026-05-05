@@ -3,7 +3,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Icons } from "../../lib/icons";
-import { API_BASE_URL } from "../lib/constants";
 import { useAuthStore } from "../../store/authStore";
 import { useWorkspaceStore } from "../../store/workspaceStore";
 import { useGoalStore } from "../../store/goalStore";
@@ -38,7 +37,7 @@ const NAV = [
   { id: "members", label: "Members", icon: "Members" },
 ];
 
-const API_URL = API_BASE_URL;
+const API_URL = process.env.NEXT_PUBLIC_API_URL ||  `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api` ;
 
 const statusMeta = {
   "no-milestones": { label: "Open", cls: "status-open", bar: "bg-gray-400 dark:bg-gray-600" },
@@ -253,42 +252,12 @@ export default function Dashboard() {
     const milestones = goals.reduce((count, goal) => count + (goal.milestones?.length || 0), 0);
 
     return [
-      {
-        id: "open",
-        label: "Open",
-        value: active,
-        subtext: currentWorkspace ? currentWorkspace.name : "No workspace selected",
-        icon: <Icons.Goals size={20} className="text-violet-500 dark:text-teal-400" />,
-        progress: goals.length ? Math.round((active / goals.length) * 100) : 0,
-      },
-      {
-        id: "done",
-        label: "Done",
-        value: completed,
-        subtext: `${completed} completed goals`,
-        icon: <Icons.Check size={20} className="text-emerald-500" />,
-        progress: goals.length ? Math.round((completed / Math.max(goals.length, 1)) * 100) : 0,
-      },
-      {
-        id: "overdue",
-        label: "Overdue",
-        value: overdue,
-        subtext: overdue ? "Needs attention" : "All on track",
-        icon: <Icons.X size={20} className="text-red-500" />,
-        progress: goals.length ? Math.round((overdue / Math.max(goals.length, 1)) * 100) : 0,
-        barGradient: "bg-gradient-to-r from-red-500 to-orange-500",
-      },
-      {
-        id: "steps",
-        label: "Steps",
-        value: milestones,
-        subtext: "Total milestones",
-        icon: <Icons.Menu size={20} className="text-sky-500" />,
-        progress: milestones ? 100 : 0,
-        barGradient: "bg-gradient-to-r from-sky-500 to-cyan-500",
-      },
+      { label: "Open", value: active },
+      { label: "Done", value: completed },
+      { label: "Overdue", value: overdue },
+      { label: "Steps", value: milestones },
     ];
-  }, [goals, currentWorkspace]);
+  }, [goals]);
 
   const tasksOverviewStats = useMemo(() => {
     const done = goals.reduce((a, g) => a + (g.milestones || []).filter(m => m.completed).length, 0);
@@ -617,102 +586,6 @@ export default function Dashboard() {
     );
   }
 
-  const dashboardBody = (
-    <div className="flex-1 overflow-y-auto p-6 space-y-6">
-      <StatisticsCards stats={stats} />
-
-      <div className="grid grid-cols-1 xl:grid-cols-[1.3fr_0.9fr] gap-6">
-        <section className="glass-card p-6">
-          <div className="flex items-start justify-between gap-4 mb-4">
-            <div>
-              <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 dark:text-zinc-500">Workspace</p>
-              <h2 className="mt-1 text-xl font-black text-slate-800 dark:text-white">
-                {currentWorkspace?.name || "Create your first workspace"}
-              </h2>
-              <p className="mt-1 text-sm text-slate-500 dark:text-zinc-500">
-                {currentWorkspace?.description || "Set up a workspace to unlock goals, announcements, and activity."}
-              </p>
-            </div>
-            <div className="flex items-center gap-2 flex-shrink-0">
-              <button onClick={() => setActiveView("goals")} className="btn-ghost text-xs px-3 py-2">Goals</button>
-              <button onClick={() => setActiveView("announcements")} className="btn-ghost text-xs px-3 py-2">Feed</button>
-            </div>
-          </div>
-
-          {currentWorkspace ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <button onClick={() => setActiveView("action-items")} className="rounded-2xl border border-white/30 dark:border-white/[0.07] bg-white/20 dark:bg-zinc-900/60 p-4 text-left hover:bg-white/30 dark:hover:bg-zinc-800/70 transition">
-                <p className="text-sm font-bold text-slate-800 dark:text-white">Action Items</p>
-                <p className="mt-1 text-xs text-slate-500 dark:text-zinc-500">Track work in progress</p>
-              </button>
-              <button onClick={() => setActiveView("activity")} className="rounded-2xl border border-white/30 dark:border-white/[0.07] bg-white/20 dark:bg-zinc-900/60 p-4 text-left hover:bg-white/30 dark:hover:bg-zinc-800/70 transition">
-                <p className="text-sm font-bold text-slate-800 dark:text-white">Activity</p>
-                <p className="mt-1 text-xs text-slate-500 dark:text-zinc-500">See recent team updates</p>
-              </button>
-              <button onClick={handleArchiveWorkspace} className="rounded-2xl border border-white/30 dark:border-white/[0.07] bg-white/20 dark:bg-zinc-900/60 p-4 text-left hover:bg-red-50 dark:hover:bg-red-500/10 transition">
-                <p className="text-sm font-bold text-slate-800 dark:text-white">Archive workspace</p>
-                <p className="mt-1 text-xs text-slate-500 dark:text-zinc-500">Hide it from the list</p>
-              </button>
-              <button onClick={() => setShowCreateWs(true)} className="rounded-2xl border border-dashed border-white/30 dark:border-white/[0.07] bg-white/10 dark:bg-zinc-900/40 p-4 text-left hover:bg-white/20 dark:hover:bg-zinc-800/70 transition">
-                <p className="text-sm font-bold text-slate-800 dark:text-white">New workspace</p>
-                <p className="mt-1 text-xs text-slate-500 dark:text-zinc-500">Start a fresh space</p>
-              </button>
-            </div>
-          ) : (
-            <div className="space-y-4">
-              <p className="text-sm text-slate-500 dark:text-zinc-500">No workspace is selected yet. Create one to load goals, announcements, and activity.</p>
-              <div className="grid grid-cols-1 gap-3">
-                <input value={name} onChange={(event) => setName(event.target.value)} placeholder="Workspace name" className="glass-input" />
-                <textarea value={description} onChange={(event) => setDescription(event.target.value)} placeholder="Workspace description" rows={3} className="glass-input resize-none" />
-                <div className="flex items-center gap-3 rounded-2xl border border-white/30 dark:border-white/[0.07] bg-white/20 dark:bg-zinc-900/60 px-3 py-2">
-                  <span className="text-xs font-semibold text-slate-500 dark:text-zinc-500">Accent color</span>
-                  <input type="color" value={workspaceColor} onChange={(event) => setWorkspaceColor(event.target.value)} className="h-8 w-10 cursor-pointer border-0 bg-transparent" />
-                </div>
-                <button onClick={handleCreateWorkspace} disabled={creating} className="btn-primary w-full">
-                  {creating ? "Creating..." : "Create Workspace"}
-                </button>
-              </div>
-            </div>
-          )}
-        </section>
-
-        <section className="glass-card p-6">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 dark:text-zinc-500">Overview</p>
-              <h2 className="mt-1 text-lg font-black text-slate-800 dark:text-white">Task balance</h2>
-            </div>
-          </div>
-          <TasksOverview stats={tasksOverviewStats} />
-        </section>
-      </div>
-
-      <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-        <section className="glass-card p-6">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 dark:text-zinc-500">Pinned</p>
-              <h2 className="mt-1 text-lg font-black text-slate-800 dark:text-white">Announcements</h2>
-            </div>
-            <button onClick={() => setActiveView("announcements")} className="text-xs font-bold text-violet-600 dark:text-teal-400">View all</button>
-          </div>
-          <PinnedAnnouncements announcements={announcements} />
-        </section>
-
-        <section className="glass-card p-6">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 dark:text-zinc-500">Recent</p>
-              <h2 className="mt-1 text-lg font-black text-slate-800 dark:text-white">Activity</h2>
-            </div>
-            <button onClick={() => setActiveView("activity")} className="text-xs font-bold text-violet-600 dark:text-teal-400">Open feed</button>
-          </div>
-          <RichActivityFeed activities={activities} />
-        </section>
-      </div>
-    </div>
-  );
-
   return (
     <main className="aurora-bg flex h-screen overflow-hidden text-gray-800 dark:text-slate-200">
       {/* ── SIDEBAR ── */}
@@ -795,16 +668,7 @@ export default function Dashboard() {
               {NAV.find(n => n.id === activeView)?.label || "Dashboard"}
             </h1>
           </div>
-          <div className="flex items-center gap-2 flex-shrink-0">
-            <NotificationBell />
-            <ThemeToggle />
-            <div className="hidden sm:flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-violet-500 to-purple-700 dark:from-teal-500 dark:to-teal-700 text-[11px] font-bold text-white">
-              {(user?.name || user?.email || "U").slice(0, 2).toUpperCase()}
-            </div>
-          </div>
         </header>
-
-        {dashboardBody}
       </div>
     </main>
   );
