@@ -3,10 +3,10 @@
 **Fredocloud Technical Assessment Submission**
 
 Live Demo:
-- Frontend: [Replace with Railway URL]
-- Backend API: [Railway]/api
-- API Docs: [Railway]/api/docs
-- Demo Login: `demo@teamhub.com` | Password `demo123`
+- Web App: [https://grateful-curiosity-production-b494.up.railway.app](https://grateful-curiosity-production-b494.up.railway.app)
+- API Server: [https://colaborative-workspace-production.up.railway.app](https://colaborative-workspace-production.up.railway.app)
+- Swagger Docs: [https://colaborative-workspace-production.up.railway.app/api/docs](https://colaborative-workspace-production.up.railway.app/api/docs)
+- Demo Login: `demo@teamhub.com` / `demo123`
 
 ## 📋 Project Overview
 Full-stack collaborative platform for team goal tracking, announcements, and action items with real-time updates. Single monorepo deployed as separate Railway services.
@@ -121,7 +121,7 @@ CLIENT_URL=http://localhost:3000
    CLOUDINARY_CLOUD_NAME=your_cloud_name
    CLOUDINARY_API_KEY=your_api_key
    CLOUDINARY_API_SECRET=your_api_secret
-   CLIENT_URL=https://your-web.up.railway.app
+   CLIENT_URL=https://grateful-curiosity-production-b494.up.railway.app
    ```
 
 4. **Deploy Frontend Web** (`apps/web`):
@@ -132,8 +132,8 @@ CLIENT_URL=http://localhost:3000
    
    **Frontend Environment Variables**:
    ```
-   NEXT_PUBLIC_API_URL=https://your-api.up.railway.app/api
-   NEXT_PUBLIC_SOCKET_URL=https://your-api.up.railway.app
+   NEXT_PUBLIC_API_URL=https://colaborative-workspace-production.up.railway.app/api
+   NEXT_PUBLIC_SOCKET_URL=https://colaborative-workspace-production.up.railway.app
    ```
 
 5. **Seed Demo Data** (Railway Shell):
@@ -144,11 +144,11 @@ CLIENT_URL=http://localhost:3000
    ```
 
 6. **Test**:
-   - API Docs: https://your-api.up.railway.app/api/docs
+   - API Docs: https://colaborative-workspace-production.up.railway.app/api/docs
    - Login: `demo@teamhub.com` / `demo123`
    - All features working (goals, announcements, kanban, real-time)
 
-**Note**: Replace `your-api.up.railway.app` / `your-web.up.railway.app` with actual Railway URLs.
+**Note**: The Web App is deployed separately from the API Server. Swagger docs are served from the API Server at `/api/docs`.
 
 ## 🔧 Known Limitations
 - No email notifications (web push ready)
