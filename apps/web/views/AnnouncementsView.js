@@ -3,7 +3,7 @@ import TopBar from "../app/components/TopBar";
 import NotificationBell from "../app/components/NotificationBell";
 import AnnouncementInput from "../app/components/AnnouncementInput";
 import AnnouncementFeed from "../app/components/AnnouncementFeed";
-import { useAnnouncementStore } from "../app/store/announcementStore";
+import { useAnnouncementStore } from "../store/announcementStore";
 
 export default function AnnouncementsView({ currentWorkspace, activities }) {
   const { announcements } = useAnnouncementStore();

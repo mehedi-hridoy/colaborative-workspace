@@ -2,7 +2,6 @@
 import { useState, useEffect } from "react";
 import { DndContext, DragOverlay, PointerSensor, useSensor, useSensors, useDroppable, useDraggable } from "@dnd-kit/core";
 import { CSS } from "@dnd-kit/utilities";
-import { API_BASE_URL } from "../lib/constants";
 import { useActionItemStore } from "../store/actionItemStore";
 
 const COLS = [
@@ -232,7 +231,7 @@ export default function KanbanBoard({ goalId, workspaceId }) {
   useEffect(()=>{ if(goalId) fetchByGoal(goalId); },[goalId]);
   useEffect(()=>{
     if(!workspaceId) return;
-    fetch(`${API_BASE_URL}/api/workspaces/${workspaceId}/members`,{credentials:"include"})
+    fetch(`http://localhost:5000/api/workspaces/${workspaceId}/members`,{credentials:"include"})
       .then(r=>r.ok?r.json():[]).then(setMembers).catch(()=>{});
   },[workspaceId]);
 

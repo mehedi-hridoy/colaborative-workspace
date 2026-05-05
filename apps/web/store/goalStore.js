@@ -1,5 +1,4 @@
 import { create } from "zustand";
-import { API_BASE_URL } from "../app/lib/constants";
 
 export const useGoalStore = create((set, get) => ({
   goals: [],
@@ -30,7 +29,7 @@ export const useGoalStore = create((set, get) => ({
     set((s) => ({ goals: [optimistic, ...s.goals] }));
 
     try {
-      const res = await fetch(`${API_BASE_URL}/api/goals`, {
+      const res = await fetch( `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/goals` , {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
@@ -69,7 +68,7 @@ export const useGoalStore = create((set, get) => ({
     set((s) => ({ goals: s.goals.filter((g) => g.id !== goalId) }));
 
     try {
-      const res = await fetch(`${API_BASE_URL}/api/goals/${goalId}`, {
+      const res = await fetch(`http://localhost:5000/api/goals/${goalId}`, {
         method: "DELETE",
         credentials: "include",
       });
