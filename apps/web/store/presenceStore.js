@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { getSocket } from "../lib/socket";
+import { getSocket } from "../app/lib/socket";
 import { API_BASE_URL } from "../app/lib/constants";
 
 export const usePresenceStore = create((set) => ({
@@ -10,7 +10,7 @@ export const usePresenceStore = create((set) => ({
   fetchMembers: async (workspaceId) => {
     if (!workspaceId) return;
     try {
-      const res = await fetch(`${API_BASE_URL}/workspaces/${workspaceId}/members`, {
+      const res = await fetch(`${API_BASE_URL}/api/workspaces/${workspaceId}/members`, {
         credentials: "include",
       });
       if (res.ok) {

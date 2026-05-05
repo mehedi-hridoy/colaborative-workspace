@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { usePresenceStore } from "../store/presenceStore";
+import { usePresenceStore } from "../../store/presenceStore";
 
 export default function OnlineMembers({ workspaceId }) {
   const { onlineMembers, members, fetchMembers, joinWorkspace, leaveWorkspace } = usePresenceStore();

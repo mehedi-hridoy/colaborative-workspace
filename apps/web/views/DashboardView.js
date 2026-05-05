@@ -1,6 +1,7 @@
-\"use client\";
-import { Icons } from \"../lib/icons\";
-import TopBar from \"../app/components/TopBar\";
+"use client";
+
+import { Icons } from "../lib/icons";
+import TopBar from "../app/components/TopBar";
 import NotificationBell from "../app/components/NotificationBell";
 
 export default function DashboardView({ user, currentWorkspace, stats, activities, setView }) {

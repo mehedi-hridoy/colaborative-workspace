@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { API_BASE_URL } from "../lib/constants";
 import { useActionItemStore } from "../store/actionItemStore";
 
 const PRIORITY_META = {
@@ -203,7 +204,7 @@ export default function ActionItemBoard({ goalId, workspaceId }) {
 
   useEffect(() => {
     if (!workspaceId) return;
-    fetch(`http://localhost:5000/api/workspaces/${workspaceId}/members`, { credentials: "include" })
+    fetch(`${API_BASE_URL}/api/workspaces/${workspaceId}/members`, { credentials: "include" })
       .then((r) => r.ok ? r.json() : [])
       .then(setMembers)
       .catch(() => {});
