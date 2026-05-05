@@ -2,6 +2,7 @@
 import { useState, useMemo } from "react";
 import dynamic from "next/dynamic";
 import { useAnnouncementStore } from "../store/announcementStore";
+import { API_BASE_URL } from "../lib/constants";
 import "react-quill-new/dist/quill.snow.css";
 
 // Dynamically import ReactQuill to avoid SSR issues
@@ -30,7 +31,7 @@ export default function AnnouncementInput({ workspaceId }) {
       formData.append("announcementId", ann.id);
 
       try {
-        const uploadRes = await fetch( `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/upload/file` , {
+        const uploadRes = await fetch(`${API_BASE_URL}/api/upload/file`, {
           method: "POST",
           body: formData,
           credentials: "include",

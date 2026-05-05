@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Icons } from "../../lib/icons";
+import { API_BASE_URL } from "../lib/constants";
 import { useAuthStore } from "../../store/authStore";
 
 export default function LoginPage() {
@@ -20,7 +21,7 @@ export default function LoginPage() {
     setError("");
 
     try {
-      const res = await fetch( `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/auth/login` , {
+      const res = await fetch(`${API_BASE_URL}/api/auth/login`, {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
@@ -44,22 +45,22 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[radial-gradient(circle_at_top,_#dbeafe_0%,_#eff6ff_25%,_#f8fafc_65%)] flex items-center justify-center px-6 py-14">
-      <div className="w-full max-w-md bg-white/95 backdrop-blur rounded-2xl border border-[#d9e1ec] shadow-[0_20px_60px_rgba(15,23,42,0.15)] p-8 md:p-10">
+    <div className="min-h-screen bg-gradient-to-br from-[#f5f5f5] to-white flex items-center justify-center px-6">
+      <div className="w-full max-w-md">
         {/* Logo & Heading */}
-        <div className="mb-10">
+        <div className="mb-12">
           <div className="flex items-center gap-3 mb-8">
-            <div className="w-10 h-10 bg-[#0f172a] rounded-lg flex items-center justify-center shadow-lg shadow-slate-900/20">
+            <div className="w-10 h-10 bg-black rounded-lg flex items-center justify-center">
               <Icons.Dashboard size={24} className="text-white" />
             </div>
-            <span className="text-xl font-semibold text-[#0f172a]">TeamFlow</span>
+            <span className="text-xl font-semibold">TeamFlow</span>
           </div>
 
-          <h1 className="text-4xl font-black tracking-tight mb-3" style={{color: '#000000'}}>
+          <h1 className="text-4xl font-normal tracking-tighter mb-3">
             Welcome back
           </h1>
-          <p className="text-base text-slate-600">
-            Sign in to run your workspace with total clarity.
+          <p className="text-base text-[#93939f]">
+            Sign in to continue collaborating with your team.
           </p>
         </div>
 
@@ -67,13 +68,13 @@ export default function LoginPage() {
         <form onSubmit={handleLogin} className="space-y-6 mb-8">
           {/* Email */}
           <div>
-            <label className="block text-sm font-medium mb-2" style={{color: '#000000'}}>Email</label>
+            <label className="block text-sm font-medium mb-2">Email</label>
             <input
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="you@example.com"
-              className="w-full bg-white border border-[#d3dbe7] rounded-xl px-4 py-3 text-base text-black placeholder:text-gray-400 caret-black focus:outline-none focus:ring-2 focus:ring-[#0f172a]/10 focus:border-[#0f172a] transition-all"
+              className="w-full bg-white border border-[#e5e7eb] rounded-lg px-4 py-3 text-base focus:outline-none focus:ring-2 focus:ring-black/10 transition-all"
               required
             />
           </div>
@@ -81,7 +82,7 @@ export default function LoginPage() {
           {/* Password */}
           <div>
             <div className="flex items-center justify-between mb-2">
-              <label className="block text-sm font-medium" style={{color: '#000000'}}>Password</label>
+              <label className="block text-sm font-medium">Password</label>
               <a href="#" className="text-sm text-[#1863dc] hover:underline">
                 Forgot?
               </a>
@@ -91,7 +92,7 @@ export default function LoginPage() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="••••••••"
-              className="w-full bg-white border border-[#d3dbe7] rounded-xl px-4 py-3 text-base text-black placeholder:text-gray-400 caret-black focus:outline-none focus:ring-2 focus:ring-[#0f172a]/10 focus:border-[#0f172a] transition-all"
+              className="w-full bg-white border border-[#e5e7eb] rounded-lg px-4 py-3 text-base focus:outline-none focus:ring-2 focus:ring-black/10 transition-all"
               required
             />
           </div>
@@ -107,7 +108,7 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-[#0f172a] text-white rounded-xl py-3 font-semibold hover:bg-[#020617] disabled:opacity-50 transition-colors shadow-[0_10px_24px_rgba(15,23,42,0.2)]"
+            className="w-full bg-black text-white rounded-lg py-3 font-medium hover:bg-[#17171c] disabled:opacity-50 transition-colors"
           >
             {loading ? "Signing in..." : "Sign In"}
           </button>
@@ -116,7 +117,7 @@ export default function LoginPage() {
         {/* Divider */}
         <div className="flex items-center gap-4 mb-8">
           <div className="flex-1 h-px bg-[#e5e7eb]" />
-          <span className="text-sm text-gray-600">or</span>
+          <span className="text-sm text-[#93939f]">or</span>
           <div className="flex-1 h-px bg-[#e5e7eb]" />
         </div>
 
@@ -128,7 +129,7 @@ export default function LoginPage() {
               setEmail("admin@example.com");
               setPassword("admin123");
             }}
-            className="bg-[#f8fafc] hover:bg-[#f1f5f9] border border-[#dbe3ee] rounded-xl px-4 py-3 text-sm font-semibold text-slate-700 transition-colors"
+            className="bg-[#f5f5f5] hover:bg-[#eeece7] border border-[#e5e7eb] rounded-lg px-4 py-3 text-sm font-medium transition-colors"
           >
             Demo Admin
           </button>
@@ -138,14 +139,14 @@ export default function LoginPage() {
               setEmail("user@example.com");
               setPassword("user123");
             }}
-            className="bg-[#f8fafc] hover:bg-[#f1f5f9] border border-[#dbe3ee] rounded-xl px-4 py-3 text-sm font-semibold text-slate-700 transition-colors"
+            className="bg-[#f5f5f5] hover:bg-[#eeece7] border border-[#e5e7eb] rounded-lg px-4 py-3 text-sm font-medium transition-colors"
           >
             Demo User
           </button>
         </div>
 
         {/* Sign Up Link */}
-        <p className="text-center text-base text-gray-600">
+        <p className="text-center text-base text-[#93939f]">
           Don't have an account?{" "}
           <Link href="/register" className="text-black font-medium hover:underline">
             Create one

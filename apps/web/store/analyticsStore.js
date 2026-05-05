@@ -1,6 +1,7 @@
 import { create } from "zustand";
+import { API_BASE_URL } from "../app/lib/constants";
 
-const API_URL =  `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api` ;
+const API_URL = `${API_BASE_URL}/api`;
 
 export const useAnalyticsStore = create((set) => ({
   analytics: null,

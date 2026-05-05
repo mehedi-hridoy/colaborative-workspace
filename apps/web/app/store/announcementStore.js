@@ -2,8 +2,9 @@
 
 import { create } from "zustand";
 import { getSocket } from "../lib/socket";
+import { API_BASE_URL } from "../lib/constants";
 
-const API =  `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/announcements` ;
+const API = `${API_BASE_URL}/api/announcements`;
 
 export const useAnnouncementStore = create((set, get) => ({
   announcements: [],

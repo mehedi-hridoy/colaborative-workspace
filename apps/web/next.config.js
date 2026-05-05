@@ -5,7 +5,7 @@ const nextConfig = {
       beforeFiles: [
         {
           source: "/api/download/:path*",
-          destination: `${apiUrl}/download/:path*`,
+          destination: `${apiUrl}/api/download/:path*`,
         },
       ],
     };

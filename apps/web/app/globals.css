@@ -323,25 +323,6 @@ body {
   color: #1f2937;
 }
 
-input,
-textarea,
-select {
-  color: #111827;
-}
-
-input::placeholder,
-textarea::placeholder {
-  color: #9ca3af;
-}
-
-input:-webkit-autofill,
-input:-webkit-autofill:hover,
-input:-webkit-autofill:focus {
-  -webkit-text-fill-color: #111827;
-  box-shadow: 0 0 0px 1000px #ffffff inset;
-  transition: background-color 5000s ease-in-out 0s;
-}
-
 html.dark body {
   color: #f3f4f6;
 }

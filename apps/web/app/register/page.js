@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Icons } from "../../lib/icons";
+import { API_BASE_URL } from "../lib/constants";
 
 export default function RegisterPage() {
   const [name, setName] = useState("");
@@ -32,7 +33,7 @@ export default function RegisterPage() {
     setLoading(true);
 
     try {
-      const res = await fetch( `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/auth/register` , {
+      const res = await fetch(`${API_BASE_URL}/api/auth/register`, {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
@@ -58,22 +59,22 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[radial-gradient(circle_at_top,_#dcfce7_0%,_#ecfeff_28%,_#f8fafc_65%)] flex items-center justify-center px-6 py-14">
-      <div className="w-full max-w-md bg-white/95 backdrop-blur rounded-2xl border border-[#d9e1ec] shadow-[0_20px_60px_rgba(15,23,42,0.15)] p-8 md:p-10">
+    <div className="min-h-screen bg-gradient-to-br from-[#f5f5f5] to-white flex items-center justify-center px-6">
+      <div className="w-full max-w-md">
         {/* Logo & Heading */}
-        <div className="mb-10">
+        <div className="mb-12">
           <div className="flex items-center gap-3 mb-8">
-            <div className="w-10 h-10 bg-[#0f172a] rounded-lg flex items-center justify-center shadow-lg shadow-slate-900/20">
+            <div className="w-10 h-10 bg-black rounded-lg flex items-center justify-center">
               <Icons.Dashboard size={24} className="text-white" />
             </div>
-            <span className="text-xl font-semibold text-[#0f172a]">TeamFlow</span>
+            <span className="text-xl font-semibold">TeamFlow</span>
           </div>
 
-          <h1 className="text-4xl font-black tracking-tight mb-3" style={{color: '#000000'}}>
+          <h1 className="text-4xl font-normal tracking-tighter mb-3">
             Get started today
           </h1>
-          <p className="text-base text-slate-600">
-            Create your workspace account and start leading execution.
+          <p className="text-base text-[#93939f]">
+            Create your account and start collaborating with your team.
           </p>
         </div>
 
@@ -89,53 +90,53 @@ export default function RegisterPage() {
         <form onSubmit={handleRegister} className="space-y-6 mb-8">
           {/* Full Name */}
           <div>
-            <label className="block text-sm font-medium mb-2" style={{color: '#000000'}}>Full Name</label>
+            <label className="block text-sm font-medium mb-2">Full Name</label>
             <input
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="John Doe"
-              className="w-full bg-white border border-[#d3dbe7] rounded-xl px-4 py-3 text-base text-black placeholder:text-gray-400 caret-black focus:outline-none focus:ring-2 focus:ring-[#0f172a]/10 focus:border-[#0f172a] transition-all"
+              className="w-full bg-white border border-[#e5e7eb] rounded-lg px-4 py-3 text-base focus:outline-none focus:ring-2 focus:ring-black/10 transition-all"
               required
             />
           </div>
 
           {/* Email */}
           <div>
-            <label className="block text-sm font-medium mb-2" style={{color: '#000000'}}>Email</label>
+            <label className="block text-sm font-medium mb-2">Email</label>
             <input
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="you@example.com"
-              className="w-full bg-white border border-[#d3dbe7] rounded-xl px-4 py-3 text-base text-black placeholder:text-gray-400 caret-black focus:outline-none focus:ring-2 focus:ring-[#0f172a]/10 focus:border-[#0f172a] transition-all"
+              className="w-full bg-white border border-[#e5e7eb] rounded-lg px-4 py-3 text-base focus:outline-none focus:ring-2 focus:ring-black/10 transition-all"
               required
             />
           </div>
 
           {/* Password */}
           <div>
-            <label className="block text-sm font-medium mb-2" style={{color: '#000000'}}>Password</label>
+            <label className="block text-sm font-medium mb-2">Password</label>
             <input
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="••••••••"
-              className="w-full bg-white border border-[#d3dbe7] rounded-xl px-4 py-3 text-base text-black placeholder:text-gray-400 caret-black focus:outline-none focus:ring-2 focus:ring-[#0f172a]/10 focus:border-[#0f172a] transition-all"
+              className="w-full bg-white border border-[#e5e7eb] rounded-lg px-4 py-3 text-base focus:outline-none focus:ring-2 focus:ring-black/10 transition-all"
               required
             />
-            <p className="text-xs text-gray-600 mt-2">At least 6 characters</p>
+            <p className="text-xs text-[#93939f] mt-2">At least 6 characters</p>
           </div>
 
           {/* Confirm Password */}
           <div>
-            <label className="block text-sm font-medium mb-2" style={{color: '#000000'}}>Confirm Password</label>
+            <label className="block text-sm font-medium mb-2">Confirm Password</label>
             <input
               type="password"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
               placeholder="••••••••"
-              className="w-full bg-white border border-[#d3dbe7] rounded-xl px-4 py-3 text-base text-black placeholder:text-gray-400 caret-black focus:outline-none focus:ring-2 focus:ring-[#0f172a]/10 focus:border-[#0f172a] transition-all"
+              className="w-full bg-white border border-[#e5e7eb] rounded-lg px-4 py-3 text-base focus:outline-none focus:ring-2 focus:ring-black/10 transition-all"
               required
             />
           </div>
@@ -148,7 +149,7 @@ export default function RegisterPage() {
           )}
 
           {/* Terms */}
-          <p className="text-xs text-gray-600 leading-relaxed">
+          <p className="text-xs text-[#93939f] leading-relaxed">
             By creating an account, you agree to our{" "}
             <a href="#" className="text-black hover:underline">
               Terms of Service
@@ -164,14 +165,14 @@ export default function RegisterPage() {
           <button
             type="submit"
             disabled={loading || success}
-            className="w-full bg-[#0f172a] text-white rounded-xl py-3 font-semibold hover:bg-[#020617] disabled:opacity-50 transition-colors shadow-[0_10px_24px_rgba(15,23,42,0.2)]"
+            className="w-full bg-black text-white rounded-lg py-3 font-medium hover:bg-[#17171c] disabled:opacity-50 transition-colors"
           >
             {loading ? "Creating account..." : success ? "Success!" : "Create Account"}
           </button>
         </form>
 
         {/* Sign In Link */}
-        <p className="text-center text-base text-gray-600">
+        <p className="text-center text-base text-[#93939f]">
           Already have an account?{" "}
           <Link href="/login" className="text-black font-medium hover:underline">
             Sign in

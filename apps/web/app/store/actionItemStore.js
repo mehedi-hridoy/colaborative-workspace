@@ -2,8 +2,9 @@
 
 import { create } from "zustand";
 import { getSocket } from "../lib/socket";
+import { API_BASE_URL } from "../lib/constants";
 
-const API =  `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/action-items` ;
+const API = `${API_BASE_URL}/api/action-items`;
 
 export const useActionItemStore = create((set, get) => ({
   itemsByGoal: {},

@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import { API_BASE_URL } from "../lib/constants";
 import { useActivityStore } from "../../store/activityStore";
 
 export default function PostUpdate({ goalId, onPostSuccess }) {
@@ -19,7 +20,7 @@ export default function PostUpdate({ goalId, onPostSuccess }) {
         formData.append("file", attachment);
         formData.append("activityId", activity.id);
 
-        await fetch( `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/upload/file` , {
+        await fetch(`${API_BASE_URL}/api/upload/file`, {
           method: "POST",
           body: formData,
           credentials: "include",

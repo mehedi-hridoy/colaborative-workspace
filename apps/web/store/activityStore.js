@@ -1,7 +1,8 @@
 import { create } from "zustand";
 import { getSocket } from "../app/lib/socket";
+import { API_BASE_URL } from "../app/lib/constants";
 
-const API_URL =  `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api` ;
+const API_URL = `${API_BASE_URL}/api`;
 
 export const useActivityStore = create((set, get) => ({
     // Per-goal activity map: { [goalId]: Activity[] }
