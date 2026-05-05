@@ -38,7 +38,7 @@ Teams often lose context across chat, docs, and task tools. This project consoli
 graph TD
   Web[Next.js Web App] -->|REST + Socket.io| API[Express API]
   API --> DB[(PostgreSQL)]
-  API --> Files[/uploads (local)/]
+  API --> Files["uploads (local)"]
   API --> Swagger[Swagger UI]
 ```
 
