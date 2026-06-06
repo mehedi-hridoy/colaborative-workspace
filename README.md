@@ -3,10 +3,12 @@
 Collaborative Workspace is a full-stack platform for aligning teams around goals, action items, and announcements with real-time activity, notifications, and analytics. It is built as a monorepo with a Next.js frontend and an Express + Prisma backend, deployed as independent services.
 
 ## Live links
-- Web app: https://grateful-curiosity-production-b494.up.railway.app
-- API: https://colaborative-workspace-production.up.railway.app
-- API docs (Swagger): https://colaborative-workspace-production.up.railway.app/api/docs
+
+- Web app: https://web-production-0b838.up.railway.app
+- API: https://api-production-ca8a.up.railway.app
+- API docs (Swagger): https://api-production-ca8a.up.railway.app/api/docs
 - Demo account: demo@teamhub.com / demo123
+
 
 ## Contents
 1. Purpose
