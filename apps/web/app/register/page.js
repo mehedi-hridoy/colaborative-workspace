@@ -3,14 +3,17 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Icons } from "../../lib/icons";
+import { Zap, ArrowRight, AlertCircle, CheckCircle, Check, Eye, EyeOff } from "lucide-react";
 import { API_BASE_URL } from "../lib/constants";
+import "../auth.css";
 
 export default function RegisterPage() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
@@ -59,125 +62,213 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#f5f5f5] to-white flex items-center justify-center px-6">
-      <div className="w-full max-w-md">
-        {/* Logo & Heading */}
-        <div className="mb-12">
-          <div className="flex items-center gap-3 mb-8">
-            <div className="w-10 h-10 bg-black rounded-lg flex items-center justify-center">
-              <Icons.Dashboard size={24} className="text-white" />
-            </div>
-            <span className="text-xl font-semibold">TeamFlow</span>
-          </div>
+    <div className="auth-page">
+      {/* ── LEFT PANEL — branding ── */}
+      <div className="auth-panel-left">
+        <div className="auth-grid-dots" />
+        <div className="auth-glow" style={{ top: "-5%", left: "-15%", opacity: 0.9 }} />
+        <div className="auth-glow" style={{ bottom: "0%", right: "-20%", opacity: 0.5 }} />
 
-          <h1 className="text-4xl font-normal tracking-tighter mb-3">
+        {/* Logo */}
+        <div style={{ position: "relative", display: "flex", alignItems: "center", gap: 10 }}>
+          <div style={{
+            width: 28, height: 28, borderRadius: 7,
+            background: "#e8e8e8",
+            display: "flex", alignItems: "center", justifyContent: "center",
+          }}>
+            <Zap size={15} color="#080808" strokeWidth={2.5} />
+          </div>
+          <span style={{ fontSize: 14, fontWeight: 600, color: "#e8e8e8", letterSpacing: "-0.01em" }}>TeamFlow</span>
+        </div>
+
+        {/* Central copy */}
+        <div style={{ position: "relative" }}>
+          <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.14em", color: "#333", textTransform: "uppercase", marginBottom: 16 }}>
             Get started today
-          </h1>
-          <p className="text-base text-[#93939f]">
-            Create your account and start collaborating with your team.
+          </p>
+          <h2 style={{
+            fontSize: 40,
+            fontWeight: 700,
+            letterSpacing: "-0.04em",
+            lineHeight: 1.05,
+            color: "#e8e8e8",
+            marginBottom: 20,
+          }}>
+            Ship faster.<br />
+            <span style={{ color: "#333" }}>Together.</span>
+          </h2>
+          <p style={{ fontSize: 14, color: "#444", lineHeight: 1.75, maxWidth: 320 }}>
+            Set up in minutes. No credit card required. Bring your whole team — it's free to start.
           </p>
         </div>
 
-        {/* Success Message */}
-        {success && (
-          <div className="bg-[#f0fdf4] border border-[#bbf7d0] rounded-lg px-4 py-3 text-sm text-[#10b981] mb-6 flex items-center gap-2">
-            <Icons.Check size={18} />
-            Account created successfully! Redirecting to login...
+        {/* Feature checklist */}
+        <div style={{ position: "relative" }}>
+          <div style={{
+            background: "#0c0c0c",
+            border: "1px solid #1a1a1a",
+            borderRadius: 12,
+            padding: "20px 22px",
+            display: "flex",
+            flexDirection: "column",
+            gap: 14,
+          }}>
+            <p style={{ fontSize: 11, fontWeight: 600, color: "#333", letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 2 }}>
+              What you get
+            </p>
+            {[
+              "Real-time collaboration across all devices",
+              "Role-based access — Admin, Member, Viewer",
+              "Goal tracking, Kanban boards & activity logs",
+              "Live team presence with <50ms latency",
+            ].map((item, i) => (
+              <div key={i} style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                <div style={{
+                  width: 18, height: 18, borderRadius: 5,
+                  background: "#111", border: "1px solid #1f1f1f",
+                  display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
+                }}>
+                  <Check size={10} color="#555" strokeWidth={2.5} />
+                </div>
+                <span style={{ fontSize: 13, color: "#444", lineHeight: 1.5 }}>{item}</span>
+              </div>
+            ))}
           </div>
-        )}
+        </div>
+      </div>
 
-        {/* Form */}
-        <form onSubmit={handleRegister} className="space-y-6 mb-8">
-          {/* Full Name */}
-          <div>
-            <label className="block text-sm font-medium mb-2">Full Name</label>
-            <input
-              type="text"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="John Doe"
-              className="w-full bg-white border border-[#e5e7eb] rounded-lg px-4 py-3 text-base focus:outline-none focus:ring-2 focus:ring-black/10 transition-all"
-              required
-            />
-          </div>
+      {/* ── RIGHT PANEL — form ── */}
+      <div className="auth-panel-right" style={{ overflowY: "auto" }}>
+        {/* Top-right nav */}
+        <div style={{ position: "absolute", top: 28, right: 32 }}>
+          <Link href="/login" className="auth-nav-link">
+            Already a member? <span style={{ color: "#e8e8e8", fontWeight: 600 }}>Sign in →</span>
+          </Link>
+        </div>
 
-          {/* Email */}
-          <div>
-            <label className="block text-sm font-medium mb-2">Email</label>
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="you@example.com"
-              className="w-full bg-white border border-[#e5e7eb] rounded-lg px-4 py-3 text-base focus:outline-none focus:ring-2 focus:ring-black/10 transition-all"
-              required
-            />
-          </div>
-
-          {/* Password */}
-          <div>
-            <label className="block text-sm font-medium mb-2">Password</label>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="••••••••"
-              className="w-full bg-white border border-[#e5e7eb] rounded-lg px-4 py-3 text-base focus:outline-none focus:ring-2 focus:ring-black/10 transition-all"
-              required
-            />
-            <p className="text-xs text-[#93939f] mt-2">At least 6 characters</p>
-          </div>
-
-          {/* Confirm Password */}
-          <div>
-            <label className="block text-sm font-medium mb-2">Confirm Password</label>
-            <input
-              type="password"
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              placeholder="••••••••"
-              className="w-full bg-white border border-[#e5e7eb] rounded-lg px-4 py-3 text-base focus:outline-none focus:ring-2 focus:ring-black/10 transition-all"
-              required
-            />
+        <div style={{ width: "100%", maxWidth: 360 }}>
+          {/* Heading */}
+          <div style={{ marginBottom: 32 }}>
+            <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.14em", color: "#333", textTransform: "uppercase", marginBottom: 12 }}>
+              Create account
+            </p>
+            <h1 style={{ fontSize: 32, fontWeight: 700, letterSpacing: "-0.04em", color: "#e8e8e8", lineHeight: 1.05 }}>
+              Join TeamFlow
+            </h1>
+            <p style={{ marginTop: 10, fontSize: 13, color: "#444", lineHeight: 1.6 }}>
+              Start collaborating with your team today.
+            </p>
           </div>
 
-          {/* Error Message */}
-          {error && (
-            <div className="bg-[#fef2f2] border border-[#fecaca] rounded-lg px-4 py-3 text-sm text-[#b30000]">
-              {error}
+          {/* Success banner */}
+          {success && (
+            <div className="auth-success">
+              <CheckCircle size={13} color="#10b981" />
+              <span style={{ fontSize: 12, color: "#10b981" }}>Account created! Redirecting…</span>
             </div>
           )}
 
-          {/* Terms */}
-          <p className="text-xs text-[#93939f] leading-relaxed">
-            By creating an account, you agree to our{" "}
-            <a href="#" className="text-black hover:underline">
-              Terms of Service
-            </a>{" "}
-            and{" "}
-            <a href="#" className="text-black hover:underline">
-              Privacy Policy
-            </a>
-            .
+          {/* Form */}
+          <form onSubmit={handleRegister} style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+            {/* Full Name */}
+            <div>
+              <label className="auth-label" htmlFor="reg-name">Full Name</label>
+              <input
+                id="reg-name"
+                type="text"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="John Doe"
+                className="auth-input"
+                required
+              />
+            </div>
+
+            {/* Email */}
+            <div>
+              <label className="auth-label" htmlFor="reg-email">Email address</label>
+              <input
+                id="reg-email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="you@example.com"
+                className="auth-input"
+                required
+              />
+            </div>
+
+            {/* Password */}
+            <div>
+              <label className="auth-label" htmlFor="reg-password">Password</label>
+              <div className="auth-input-wrap">
+                <input
+                  id="reg-password"
+                  type={showPassword ? "text" : "password"}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="••••••••"
+                  className="auth-input"
+                  style={{ paddingRight: 40 }}
+                  required
+                />
+                <button type="button" className="auth-input-icon-btn" onClick={() => setShowPassword(v => !v)}>
+                  {showPassword ? <EyeOff size={14} /> : <Eye size={14} />}
+                </button>
+              </div>
+              <p style={{ marginTop: 5, fontSize: 11, color: "#252525", letterSpacing: "0.01em" }}>Minimum 6 characters</p>
+            </div>
+
+            {/* Confirm Password */}
+            <div>
+              <label className="auth-label" htmlFor="reg-confirm">Confirm Password</label>
+              <div className="auth-input-wrap">
+                <input
+                  id="reg-confirm"
+                  type={showConfirm ? "text" : "password"}
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  placeholder="••••••••"
+                  className="auth-input"
+                  style={{ paddingRight: 40 }}
+                  required
+                />
+                <button type="button" className="auth-input-icon-btn" onClick={() => setShowConfirm(v => !v)}>
+                  {showConfirm ? <EyeOff size={14} /> : <Eye size={14} />}
+                </button>
+              </div>
+            </div>
+
+            {/* Error */}
+            {error && (
+              <div className="auth-error">
+                <AlertCircle size={13} color="#8b2020" />
+                <span style={{ fontSize: 12, color: "#8b2020" }}>{error}</span>
+              </div>
+            )}
+
+            {/* Terms */}
+            <p className="auth-terms">
+              By creating an account you agree to our{" "}
+              <a href="#" className="auth-terms-link">Terms of Service</a>
+              {" "}and{" "}
+              <a href="#" className="auth-terms-link">Privacy Policy</a>.
+            </p>
+
+            {/* Submit */}
+            <button type="submit" disabled={loading || success} className="auth-btn-primary" style={{ marginTop: 2 }}>
+              {loading ? "Creating account…" : success ? "Success!" : <><span>Create Account</span><ArrowRight size={13} /></>}
+            </button>
+          </form>
+
+          {/* Footer note */}
+          <p style={{ marginTop: 28, textAlign: "center", fontSize: 12, color: "#252525", letterSpacing: "0.01em" }}>
+            Already have an account?{" "}
+            <Link href="/login" className="auth-link" style={{ fontSize: 12 }}>
+              Sign in
+            </Link>
           </p>
-
-          {/* Submit Button */}
-          <button
-            type="submit"
-            disabled={loading || success}
-            className="w-full bg-black text-white rounded-lg py-3 font-medium hover:bg-[#17171c] disabled:opacity-50 transition-colors"
-          >
-            {loading ? "Creating account..." : success ? "Success!" : "Create Account"}
-          </button>
-        </form>
-
-        {/* Sign In Link */}
-        <p className="text-center text-base text-[#93939f]">
-          Already have an account?{" "}
-          <Link href="/login" className="text-black font-medium hover:underline">
-            Sign in
-          </Link>
-        </p>
+        </div>
       </div>
     </div>
   );

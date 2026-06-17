@@ -179,6 +179,11 @@ export const useAnnouncementStore = create((set, get) => ({
     const socket = getSocket();
     socket.emit("join_workspace", workspaceId);
 
+    socket.off("announcement:new");
+    socket.off("announcement:reaction");
+    socket.off("announcement:comment");
+    socket.off("announcement:pin");
+
     socket.on("announcement:new", (item) => {
       set((s) => {
         if (s.announcements.some((a) => a.id === item.id)) return s;

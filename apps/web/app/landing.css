@@ -1,0 +1,120 @@
+/* ─────────────────────────────────────────────
+   Landing Page — styles
+   ───────────────────────────────────────────── */
+
+.lp-page {
+  font-family: var(--font-inter), 'Inter', system-ui, sans-serif;
+  background: #080808;
+  color: #e8e8e8;
+  min-height: 100vh;
+}
+
+.lp-nav-link {
+  font-size: 13px;
+  font-weight: 500;
+  color: #888;
+  text-decoration: none;
+  letter-spacing: 0.01em;
+  transition: color 0.2s;
+}
+
+.lp-nav-link:hover {
+  color: #e8e8e8;
+}
+
+.lp-btn-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: #e8e8e8;
+  color: #080808;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 10px 22px;
+  border-radius: 8px;
+  text-decoration: none;
+  letter-spacing: 0.01em;
+  transition: background 0.2s, transform 0.2s;
+  border: none;
+  cursor: pointer;
+}
+
+.lp-btn-primary:hover {
+  background: #ffffff;
+  transform: translateY(-1px);
+}
+
+.lp-btn-ghost {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: transparent;
+  color: #888;
+  font-size: 13px;
+  font-weight: 500;
+  padding: 10px 22px;
+  border-radius: 8px;
+  text-decoration: none;
+  border: 1px solid #1f1f1f;
+  transition: border-color 0.2s, color 0.2s;
+  cursor: pointer;
+}
+
+.lp-btn-ghost:hover {
+  border-color: #333;
+  color: #e8e8e8;
+}
+
+.lp-feature-card {
+  background: #0f0f0f;
+  border: 1px solid #1a1a1a;
+  border-radius: 12px;
+  padding: 28px;
+  transition: border-color 0.25s, transform 0.25s;
+}
+
+.lp-feature-card:hover {
+  border-color: #2a2a2a;
+  transform: translateY(-2px);
+}
+
+.lp-divider {
+  width: 1px;
+  height: 20px;
+  background: #1f1f1f;
+}
+
+.lp-grid-dots {
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(circle, #1c1c1c 1px, transparent 1px);
+  background-size: 28px 28px;
+  pointer-events: none;
+}
+
+.lp-glow {
+  position: absolute;
+  width: 600px;
+  height: 600px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(99,102,241,0.06) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+@media (max-width: 768px) {
+  .lp-hide-mobile {
+    display: none !important;
+  }
+  .lp-hero-h1 {
+    font-size: 44px !important;
+    line-height: 1.1 !important;
+  }
+  .lp-features-grid {
+    grid-template-columns: 1fr !important;
+  }
+  .lp-stats-row {
+    flex-direction: column !important;
+    gap: 24px !important;
+    align-items: flex-start !important;
+  }
+}

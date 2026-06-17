@@ -1,261 +1,320 @@
 "use client";
 
 import Link from "next/link";
-import { Icons } from "../lib/icons";
+import { ArrowRight, CheckCircle, Users, BarChart3, Zap, Shield, Activity } from "lucide-react";
+import "./landing.css";
+
+const FEATURES = [
+  {
+    icon: CheckCircle,
+    title: "Goal Tracking",
+    desc: "Set objectives, define milestones, and visualise team progress with live charts and granular breakdowns.",
+  },
+  {
+    icon: Activity,
+    title: "Action Items",
+    desc: "Kanban boards with drag-and-drop workflow. Smart assignments and due-date tracking keep nothing slipping through.",
+  },
+  {
+    icon: Users,
+    title: "Team Presence",
+    desc: "See who is online in real time. Manage Admin, Member, and Viewer roles with fine-grained permissions.",
+  },
+  {
+    icon: BarChart3,
+    title: "Analytics",
+    desc: "Goal completion charts, productivity trends, and CSV exports available at any moment.",
+  },
+  {
+    icon: Zap,
+    title: "Real-time Sync",
+    desc: "Socket.io-powered updates propagate instantly across every device the moment something changes.",
+  },
+  {
+    icon: Shield,
+    title: "Role-based Access",
+    desc: "Three-tier RBAC ensures the right people have the right access — no over-sharing, no friction.",
+  },
+];
+
+const STATS = [
+  { value: "< 50ms", label: "Real-time latency" },
+  { value: "3-tier", label: "Permission model" },
+  { value: "100%", label: "Open workspace" },
+];
 
 export default function LandingPage() {
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-950">
-      {/* NAV BAR */}
-      <nav className="fixed top-0 left-0 right-0 z-50 border-b border-slate-200/80 bg-white/90 backdrop-blur-xl">
-        <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-slate-950 flex items-center justify-center shadow-sm shadow-slate-950/15">
-              <Icons.Dashboard size={20} className="text-white" />
+    <div className="lp-page">
+
+      {/* ── NAV ── */}
+      <nav style={{
+        position: "fixed", top: 0, left: 0, right: 0, zIndex: 50,
+        borderBottom: "1px solid #141414",
+        background: "rgba(8,8,8,0.85)",
+        backdropFilter: "blur(16px)",
+        WebkitBackdropFilter: "blur(16px)",
+      }}>
+        <div style={{ maxWidth: 1120, margin: "0 auto", padding: "0 24px", height: 56, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+          {/* Logo */}
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <div style={{
+              width: 28, height: 28, borderRadius: 7,
+              background: "#e8e8e8",
+              display: "flex", alignItems: "center", justifyContent: "center",
+            }}>
+              <Zap size={15} color="#080808" strokeWidth={2.5} />
             </div>
-            <span className="text-lg font-semibold tracking-tight text-slate-950">TeamFlow</span>
+            <span style={{ fontSize: 14, fontWeight: 600, color: "#e8e8e8", letterSpacing: "-0.01em" }}>TeamFlow</span>
           </div>
 
-          <div className="hidden md:flex items-center gap-12">
-            <a href="#features" className="text-sm font-medium text-slate-600 transition-colors hover:text-slate-950">
-              Features
-            </a>
-            <a href="#benefits" className="text-sm font-medium text-slate-600 transition-colors hover:text-slate-950">
-              Benefits
-            </a>
+          {/* Links */}
+          <div className="lp-hide-mobile" style={{ display: "flex", alignItems: "center", gap: 32 }}>
+            <a href="#features" className="lp-nav-link">Features</a>
+            <a href="#why" className="lp-nav-link">Why TeamFlow</a>
           </div>
 
-          <div className="flex items-center gap-4">
-            <Link href="/login" className="text-sm font-medium text-slate-600 transition-colors hover:text-slate-950">
-              Sign In
-            </Link>
-            <Link href="/register" className="bg-slate-950 text-white rounded-full px-6 py-2.5 text-sm font-semibold shadow-sm shadow-slate-950/15 transition-all hover:-translate-y-0.5 hover:bg-slate-800">
-              Get Started
+          {/* Actions */}
+          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+            <Link href="/login" className="lp-nav-link lp-hide-mobile">Sign in</Link>
+            <div className="lp-divider lp-hide-mobile" />
+            <Link href="/register" className="lp-btn-primary" style={{ padding: "8px 18px", fontSize: 13 }}>
+              Get started <ArrowRight size={13} />
             </Link>
           </div>
         </div>
       </nav>
 
-      {/* HERO SECTION */}
-      <section className="pt-40 pb-24 px-6">
-        <div className="max-w-4xl mx-auto text-center">
-          <p className="mb-5 text-sm font-semibold uppercase tracking-[0.28em] text-slate-500">
-            Collaborative workspace for modern teams
-          </p>
-          <h1 className="text-6xl md:text-8xl font-semibold leading-[0.95] tracking-tight mb-8 text-black">
-            Work together with <span className="text-black">clarity</span>
+      {/* ── HERO ── */}
+      <section style={{ position: "relative", overflow: "hidden", paddingTop: 160, paddingBottom: 120, paddingLeft: 24, paddingRight: 24, textAlign: "center" }}>
+        <div className="lp-grid-dots" />
+        <div className="lp-glow" style={{ top: -100, left: "50%", transform: "translateX(-50%)" }} />
+
+        <div style={{ position: "relative", maxWidth: 760, margin: "0 auto" }}>
+          {/* Pill badge */}
+          <div style={{
+            display: "inline-flex", alignItems: "center", gap: 8,
+            background: "#111", border: "1px solid #1f1f1f",
+            borderRadius: 999, padding: "5px 14px 5px 10px",
+            marginBottom: 36,
+          }}>
+            <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.12em", color: "#555", textTransform: "uppercase" }}>Now available</span>
+            <div style={{ width: 1, height: 12, background: "#222" }} />
+            <span style={{ fontSize: 12, color: "#666", fontWeight: 500 }}>Real-time collaboration for your team</span>
+          </div>
+
+          <h1 className="lp-hero-h1" style={{
+            fontSize: 72,
+            fontWeight: 700,
+            lineHeight: 1.0,
+            letterSpacing: "-0.04em",
+            color: "#f0f0f0",
+            marginBottom: 28,
+          }}>
+            Work together.<br />
+            <span style={{ color: "#444" }}>Stay aligned.</span>
           </h1>
-          <p className="text-lg md:text-xl text-slate-600 mb-12 max-w-2xl mx-auto leading-8">
-            TeamFlow keeps goals, tasks, and team updates in one calm workspace so your team can move faster with less noise.
+
+          <p style={{
+            fontSize: 17,
+            lineHeight: 1.7,
+            color: "#555",
+            maxWidth: 520,
+            margin: "0 auto 48px",
+            fontWeight: 400,
+          }}>
+            TeamFlow is a calm, focused workspace where goals, tasks, and team communication live together — without the noise.
           </p>
 
-          <div className="flex flex-col sm:flex-row gap-4 items-center justify-center">
-            <Link href="/register" className="bg-slate-950 text-white rounded-full px-8 py-4 font-semibold shadow-lg shadow-slate-950/15 hover:bg-slate-800 hover:-translate-y-0.5 transition-all inline-flex items-center gap-2">
-              Start free
-              <Icons.ChevronRight size={20} />
+          <div style={{ display: "flex", gap: 12, justifyContent: "center", flexWrap: "wrap" }}>
+            <Link href="/register" className="lp-btn-primary">
+              Start for free <ArrowRight size={14} />
             </Link>
-            <a href="#demo" className="border border-slate-300 bg-white rounded-full px-8 py-4 font-semibold text-slate-700 hover:bg-slate-950 hover:text-white hover:border-slate-950 transition-all inline-flex items-center gap-2">
-              Watch demo
-              <Icons.FileText size={20} />
+            <a href="#features" className="lp-btn-ghost">
+              See features
             </a>
           </div>
 
-          <p className="mt-6 text-sm text-slate-500">
-            No credit card required. Set up in minutes.
+          <p style={{ marginTop: 20, fontSize: 12, color: "#333", letterSpacing: "0.01em" }}>
+            No credit card required · Set up in minutes
           </p>
         </div>
       </section>
 
-      {/* FEATURES SECTION */}
-      <section id="features" className="py-24 px-6 bg-white">
-        <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-20">
-            <p className="text-sm font-semibold uppercase tracking-[0.28em] text-slate-500 mb-4">Core capabilities</p>
-            <h2 className="text-4xl md:text-6xl font-semibold tracking-tight text-slate-950">
-              Built for teams that need clarity
-            </h2>
-            <p className="mt-5 text-lg text-slate-600 max-w-2xl mx-auto leading-8">
-              Every section is designed to reduce friction, keep work visible, and help people understand what matters right now.
+      {/* ── STATS BAR ── */}
+      <section style={{ borderTop: "1px solid #141414", borderBottom: "1px solid #141414", padding: "32px 24px" }}>
+        <div style={{
+          maxWidth: 1120, margin: "0 auto",
+          display: "flex", gap: 48, justifyContent: "center", alignItems: "center", flexWrap: "wrap",
+        }} className="lp-stats-row">
+          {STATS.map((s, i) => (
+            <div key={i} style={{ textAlign: "center" }}>
+              <p style={{ fontSize: 28, fontWeight: 700, color: "#e8e8e8", letterSpacing: "-0.03em", lineHeight: 1 }}>{s.value}</p>
+              <p style={{ fontSize: 12, color: "#444", marginTop: 6, fontWeight: 500, letterSpacing: "0.02em" }}>{s.label}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* ── FEATURES ── */}
+      <section id="features" style={{ padding: "100px 24px" }}>
+        <div style={{ maxWidth: 1120, margin: "0 auto" }}>
+          <div style={{ marginBottom: 64 }}>
+            <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.14em", color: "#444", textTransform: "uppercase", marginBottom: 14 }}>
+              Core capabilities
             </p>
+            <h2 style={{ fontSize: 40, fontWeight: 700, letterSpacing: "-0.03em", color: "#e8e8e8", maxWidth: 520, lineHeight: 1.1 }}>
+              Everything your team needs. Nothing it doesn't.
+            </h2>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-8">
-            <div className="bg-slate-50 rounded-2xl p-8 border border-slate-200/80 shadow-sm">
-              <div className="w-12 h-12 bg-slate-950 rounded-xl flex items-center justify-center mb-6 shadow-sm shadow-slate-950/15">
-                <Icons.Goals size={24} className="text-white" />
-              </div>
-              <h3 className="text-xl font-semibold mb-4 text-slate-950">Goal tracking</h3>
-              <p className="text-base text-slate-600 leading-7">
-                Set team objectives, create milestones, and track progress in real time with granular insight.
-              </p>
-            </div>
-
-            <div className="bg-slate-50 rounded-2xl p-8 border border-slate-200/80 shadow-sm">
-              <div className="w-12 h-12 bg-slate-900 rounded-xl flex items-center justify-center mb-6 shadow-sm shadow-slate-950/15">
-                <Icons.ActionItems size={24} className="text-white" />
-              </div>
-              <h3 className="text-xl font-semibold mb-4 text-slate-950">Task management</h3>
-              <p className="text-base text-slate-600 leading-7">
-                Kanban boards, drag-and-drop workflow, and smart assignments keep work moving without extra overhead.
-              </p>
-            </div>
-
-            <div className="bg-slate-50 rounded-2xl p-8 border border-slate-200/80 shadow-sm">
-              <div className="w-12 h-12 bg-blue-600 rounded-xl flex items-center justify-center mb-6 shadow-sm shadow-blue-600/20">
-                <Icons.Announcements size={24} className="text-white" />
-              </div>
-              <h3 className="text-xl font-semibold mb-4 text-slate-950">Communication</h3>
-              <p className="text-base text-slate-600 leading-7">
-                Rich announcements, real-time reactions, and the activity feed live in one place.
-              </p>
-            </div>
-
-            <div className="bg-slate-50 rounded-2xl p-8 border border-slate-200/80 shadow-sm">
-              <div className="w-12 h-12 bg-orange-500 rounded-xl flex items-center justify-center mb-6 shadow-sm shadow-orange-500/20">
-                <Icons.Members size={24} className="text-white" />
-              </div>
-              <h3 className="text-xl font-semibold mb-4 text-slate-950">Team presence</h3>
-              <p className="text-base text-slate-600 leading-7">
-                See who is online, manage permissions by role, and scale collaboration without confusion.
-              </p>
-            </div>
-
-            <div className="bg-slate-50 rounded-2xl p-8 border border-slate-200/80 shadow-sm">
-              <div className="w-12 h-12 bg-emerald-500 rounded-xl flex items-center justify-center mb-6 shadow-sm shadow-emerald-500/20">
-                <Icons.Analytics size={24} className="text-white" />
-              </div>
-              <h3 className="text-xl font-semibold mb-4 text-slate-950">Analytics</h3>
-              <p className="text-base text-slate-600 leading-7">
-                CSV exports, goal charts, and team productivity insights are always easy to find.
-              </p>
-            </div>
-
-            <div className="bg-slate-50 rounded-2xl p-8 border border-slate-200/80 shadow-sm">
-              <div className="w-12 h-12 bg-violet-500 rounded-xl flex items-center justify-center mb-6 shadow-sm shadow-violet-500/20">
-                <Icons.Activity size={24} className="text-white" />
-              </div>
-              <h3 className="text-xl font-semibold mb-4 text-slate-950">Real-time sync</h3>
-              <p className="text-base text-slate-600 leading-7">
-                Socket.io-powered updates keep every device in sync the moment work changes.
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* BENEFITS SECTION */}
-      <section id="benefits" className="py-24 px-6 bg-slate-50">
-        <div className="max-w-5xl mx-auto">
-          <div className="grid md:grid-cols-2 gap-20 items-center">
-            <div>
-              <p className="text-sm font-semibold uppercase tracking-[0.28em] text-slate-500 mb-4">
-                Why teams choose TeamFlow
-              </p>
-              <h2 className="text-4xl md:text-5xl font-semibold tracking-tight mb-12 text-black leading-tight">
-                A simpler way to stay aligned and move faster
-              </h2>
-              <ul className="space-y-8">
-                <li className="flex gap-4">
-                  <div className="flex-shrink-0 w-6 h-6 bg-slate-950 rounded-lg flex items-center justify-center shadow-sm shadow-slate-950/15">
-                    <Icons.Check size={16} className="text-white" />
-                  </div>
-                  <div>
-                    <h3 className="text-lg font-semibold mb-2 text-slate-950">Less context switching</h3>
-                    <p className="text-base text-slate-600 leading-7">Everything you need to execute lives in one place, so work stays focused.</p>
-                  </div>
-                </li>
-                <li className="flex gap-4">
-                  <div className="flex-shrink-0 w-6 h-6 bg-slate-950 rounded-lg flex items-center justify-center shadow-sm shadow-slate-950/15">
-                    <Icons.Check size={16} className="text-white" />
-                  </div>
-                  <div>
-                    <h3 className="text-lg font-semibold mb-2 text-slate-950">Faster team decisions</h3>
-                    <p className="text-base text-slate-600 leading-7">Real-time updates make it easier to move from discussion to action.</p>
-                  </div>
-                </li>
-                <li className="flex gap-4">
-                  <div className="flex-shrink-0 w-6 h-6 bg-slate-950 rounded-lg flex items-center justify-center shadow-sm shadow-slate-950/15">
-                    <Icons.Check size={16} className="text-white" />
-                  </div>
-                  <div>
-                    <h3 className="text-lg font-semibold mb-2 text-slate-950">Clear ownership</h3>
-                    <p className="text-base text-slate-600 leading-7">Permissions and assignees make responsibilities obvious across the team.</p>
-                  </div>
-                </li>
-              </ul>
-            </div>
-
-            <div className="bg-white rounded-[2rem] border border-slate-200/80 p-12 flex items-center justify-center min-h-96 shadow-sm">
-              <div className="text-center">
-                <div className="w-20 h-20 bg-slate-950 rounded-2xl mx-auto mb-6 flex items-center justify-center shadow-lg shadow-slate-950/15">
-                  <Icons.Dashboard size={40} className="text-white" />
+          <div className="lp-features-grid" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 1, background: "#141414", borderRadius: 14, overflow: "hidden", border: "1px solid #141414" }}>
+            {FEATURES.map((f, i) => (
+              <div key={i} className="lp-feature-card" style={{ borderRadius: 0, border: "none", borderColor: "transparent" }}>
+                <div style={{
+                  width: 36, height: 36, borderRadius: 9,
+                  background: "#141414", border: "1px solid #1f1f1f",
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  marginBottom: 18,
+                }}>
+                  <f.icon size={16} color="#888" strokeWidth={1.8} />
                 </div>
-                <p className="text-slate-500 font-medium">Dashboard preview</p>
+                <h3 style={{ fontSize: 14, fontWeight: 600, color: "#e0e0e0", marginBottom: 10, letterSpacing: "-0.01em" }}>{f.title}</h3>
+                <p style={{ fontSize: 13, color: "#555", lineHeight: 1.7, fontWeight: 400 }}>{f.desc}</p>
               </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── WHY SECTION ── */}
+      <section id="why" style={{ padding: "100px 24px", borderTop: "1px solid #141414" }}>
+        <div style={{ maxWidth: 1120, margin: "0 auto", display: "grid", gridTemplateColumns: "1fr 1fr", gap: 80, alignItems: "center" }}>
+          <div>
+            <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.14em", color: "#444", textTransform: "uppercase", marginBottom: 14 }}>
+              Why TeamFlow
+            </p>
+            <h2 style={{ fontSize: 38, fontWeight: 700, letterSpacing: "-0.03em", color: "#e8e8e8", lineHeight: 1.1, marginBottom: 40 }}>
+              Less noise.<br />More momentum.
+            </h2>
+            <ul style={{ listStyle: "none", display: "flex", flexDirection: "column", gap: 28 }}>
+              {[
+                { title: "One source of truth", desc: "Goals, tasks, announcements, and activity in a single workspace." },
+                { title: "Instant decisions", desc: "Real-time updates mean your team always acts on current information." },
+                { title: "Clear ownership", desc: "Roles and assignees make responsibilities obvious — no ambiguity." },
+              ].map((item, i) => (
+                <li key={i} style={{ display: "flex", gap: 16, alignItems: "flex-start" }}>
+                  <div style={{
+                    marginTop: 2, width: 20, height: 20, borderRadius: 5,
+                    background: "#111", border: "1px solid #1f1f1f",
+                    display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
+                  }}>
+                    <CheckCircle size={11} color="#555" />
+                  </div>
+                  <div>
+                    <p style={{ fontSize: 14, fontWeight: 600, color: "#d0d0d0", marginBottom: 4 }}>{item.title}</p>
+                    <p style={{ fontSize: 13, color: "#555", lineHeight: 1.65 }}>{item.desc}</p>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* Visual panel */}
+          <div style={{
+            background: "#0c0c0c", border: "1px solid #1a1a1a",
+            borderRadius: 16, padding: 32, minHeight: 360,
+            display: "flex", flexDirection: "column", justifyContent: "space-between",
+          }}>
+            {/* Mock activity feed */}
+            <div>
+              <p style={{ fontSize: 11, fontWeight: 600, color: "#333", letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 20 }}>Live activity</p>
+              {[
+                { user: "AK", action: "Completed goal", detail: "Q2 Revenue Target", time: "just now", color: "#10b981" },
+                { user: "MS", action: "Created task", detail: "Design system audit", time: "2m ago", color: "#6366f1" },
+                { user: "JL", action: "Posted update", detail: "Sprint retrospective notes", time: "8m ago", color: "#f59e0b" },
+                { user: "RK", action: "Joined workspace", detail: "as Viewer", time: "15m ago", color: "#888" },
+              ].map((item, i) => (
+                <div key={i} style={{
+                  display: "flex", alignItems: "flex-start", gap: 12,
+                  paddingBottom: i < 3 ? 16 : 0, marginBottom: i < 3 ? 16 : 0,
+                  borderBottom: i < 3 ? "1px solid #141414" : "none",
+                }}>
+                  <div style={{
+                    width: 28, height: 28, borderRadius: "50%", flexShrink: 0,
+                    background: item.color + "20",
+                    border: `1px solid ${item.color}30`,
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                    fontSize: 10, fontWeight: 700, color: item.color,
+                  }}>{item.user}</div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <p style={{ fontSize: 12, color: "#555", lineHeight: 1.5 }}>
+                      <span style={{ color: "#888", fontWeight: 500 }}>{item.action}</span>
+                      {" · "}
+                      <span style={{ color: "#555" }}>{item.detail}</span>
+                    </p>
+                  </div>
+                  <span style={{ fontSize: 10, color: "#2d2d2d", flexShrink: 0, fontWeight: 500 }}>{item.time}</span>
+                </div>
+              ))}
+            </div>
+
+            {/* Mini progress bars */}
+            <div style={{ marginTop: 24, paddingTop: 24, borderTop: "1px solid #141414" }}>
+              <p style={{ fontSize: 11, fontWeight: 600, color: "#333", letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 16 }}>Goal progress</p>
+              {[
+                { label: "Q2 Product Launch", pct: 78, color: "#6366f1" },
+                { label: "Team Onboarding", pct: 92, color: "#10b981" },
+                { label: "API Refactor", pct: 43, color: "#f59e0b" },
+              ].map((g, i) => (
+                <div key={i} style={{ marginBottom: i < 2 ? 12 : 0 }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 5 }}>
+                    <span style={{ fontSize: 11, color: "#555" }}>{g.label}</span>
+                    <span style={{ fontSize: 11, color: "#333", fontWeight: 600 }}>{g.pct}%</span>
+                  </div>
+                  <div style={{ height: 3, background: "#141414", borderRadius: 999 }}>
+                    <div style={{ width: `${g.pct}%`, height: "100%", background: g.color, borderRadius: 999 }} />
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
         </div>
       </section>
 
-      {/* CTA SECTION */}
-      <section className="py-24 px-6 bg-slate-950 text-white">
-        <div className="max-w-3xl mx-auto text-center">
-          <p className="text-sm font-semibold uppercase tracking-[0.28em] text-cyan-200/75 mb-4">
-            Ready to move faster?
-          </p>
-          <h2 className="text-4xl md:text-6xl font-semibold tracking-tight mb-8 text-white leading-tight">
-            Bring your team into one shared rhythm
+      {/* ── CTA ── */}
+      <section style={{ padding: "100px 24px", borderTop: "1px solid #141414" }}>
+        <div style={{ maxWidth: 640, margin: "0 auto", textAlign: "center" }}>
+          <h2 style={{ fontSize: 48, fontWeight: 700, letterSpacing: "-0.04em", color: "#e8e8e8", lineHeight: 1.05, marginBottom: 20 }}>
+            Your team deserves a better workspace.
           </h2>
-          <p className="text-lg text-slate-300 mb-12 leading-8 max-w-2xl mx-auto">
-            Start collaborating today with one workspace for goals, tasks, and updates. No credit card required.
+          <p style={{ fontSize: 15, color: "#444", lineHeight: 1.7, marginBottom: 40 }}>
+            Set up takes minutes. No credit card. Invite your team and start shipping with clarity from day one.
           </p>
-
-          <Link href="/register" className="inline-flex items-center gap-2 bg-white text-slate-950 rounded-full px-8 py-4 font-semibold shadow-lg shadow-black/20 hover:bg-slate-100 hover:-translate-y-0.5 transition-all">
-            Start building now
-            <Icons.ChevronRight size={20} />
+          <Link href="/register" className="lp-btn-primary" style={{ fontSize: 14, padding: "12px 28px" }}>
+            Get started free <ArrowRight size={15} />
           </Link>
         </div>
       </section>
 
-      {/* FOOTER */}
-      <footer className="bg-white text-slate-700 border-t border-slate-200 py-12 px-6">
-        <div className="max-w-6xl mx-auto">
-          <div className="grid md:grid-cols-4 gap-12 mb-12">
-            <div>
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-8 h-8 bg-slate-950 rounded-lg flex items-center justify-center shadow-sm shadow-slate-950/15">
-                  <Icons.Dashboard size={20} className="text-white" />
-                </div>
-                <span className="font-semibold text-slate-950">TeamFlow</span>
-              </div>
-              <p className="text-sm text-slate-500">Collaborate with clarity</p>
+      {/* ── FOOTER ── */}
+      <footer style={{ borderTop: "1px solid #141414", padding: "32px 24px" }}>
+        <div style={{
+          maxWidth: 1120, margin: "0 auto",
+          display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 16,
+        }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <div style={{ width: 22, height: 22, borderRadius: 5, background: "#e8e8e8", display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <Zap size={12} color="#080808" strokeWidth={2.5} />
             </div>
-            <div>
-              <h3 className="font-semibold mb-4 text-sm uppercase tracking-wide text-slate-950">Product</h3>
-              <ul className="space-y-2 text-sm text-slate-500">
-                <li><a href="#" className="hover:text-slate-950">Features</a></li>
-                <li><a href="#" className="hover:text-slate-950">Security</a></li>
-              </ul>
-            </div>
-            <div>
-              <h3 className="font-semibold mb-4 text-sm uppercase tracking-wide text-slate-950">Company</h3>
-              <ul className="space-y-2 text-sm text-slate-500">
-                <li><a href="#" className="hover:text-slate-950">About</a></li>
-                <li><a href="#" className="hover:text-slate-950">Blog</a></li>
-              </ul>
-            </div>
-            <div>
-              <h3 className="font-semibold mb-4 text-sm uppercase tracking-wide text-slate-950">Legal</h3>
-              <ul className="space-y-2 text-sm text-slate-500">
-                <li><a href="#" className="hover:text-slate-950">Privacy</a></li>
-                <li><a href="#" className="hover:text-slate-950">Terms</a></li>
-              </ul>
-            </div>
+            <span style={{ fontSize: 13, fontWeight: 600, color: "#444" }}>TeamFlow</span>
           </div>
-
-          <div className="border-t border-slate-200 pt-8 text-sm text-slate-500 text-center">
-            <p>&copy; 2026 TeamFlow. All rights reserved.</p>
+          <div style={{ display: "flex", gap: 28, flexWrap: "wrap" }}>
+            {["Features", "Privacy", "Terms", "Sign in"].map((l, i) => (
+              <a key={i} href={l === "Sign in" ? "/login" : "#"} className="lp-nav-link" style={{ fontSize: 12 }}>{l}</a>
+            ))}
           </div>
+          <p style={{ fontSize: 12, color: "#2a2a2a" }}>© 2026 TeamFlow</p>
         </div>
       </footer>
     </div>

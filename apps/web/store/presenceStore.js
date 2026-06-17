@@ -2,6 +2,9 @@ import { create } from "zustand";
 import { getSocket } from "../lib/socket";
 import { API_BASE_URL } from "../app/lib/constants";
 
+let presenceHandler = null;
+let joinedWorkspaceId = null;
+
 export const usePresenceStore = create((set) => ({
   onlineMembers: [],
   members: [],
@@ -25,19 +28,40 @@ export const usePresenceStore = create((set) => ({
   // Join workspace and listen for presence updates
   joinWorkspace: (workspaceId) => {
     const socket = getSocket();
+
+    if (joinedWorkspaceId === workspaceId && presenceHandler) {
+      return;
+    }
+
+    if (presenceHandler) {
+      socket.off("presence:update", presenceHandler);
+    }
+
+    presenceHandler = (onlineUserIds) => {
+      set({ onlineMembers: onlineUserIds });
+    };
+
+    joinedWorkspaceId = workspaceId;
     socket.emit("join_workspace", workspaceId);
 
     // Listen for presence updates
-    socket.on("presence:update", (onlineUserIds) => {
-      set({ onlineMembers: onlineUserIds });
-    });
+    socket.on("presence:update", presenceHandler);
   },
 
   // Leave workspace
   leaveWorkspace: (workspaceId) => {
     const socket = getSocket();
-    socket.emit("leave_workspace", workspaceId);
-    socket.off("presence:update");
+
+    if (joinedWorkspaceId === workspaceId) {
+      socket.emit("leave_workspace", workspaceId);
+    }
+
+    if (presenceHandler) {
+      socket.off("presence:update", presenceHandler);
+      presenceHandler = null;
+    }
+
+    joinedWorkspaceId = null;
     set({ onlineMembers: [] });
   },
 

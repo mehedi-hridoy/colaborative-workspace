@@ -1,7 +1,7 @@
 import { io } from "socket.io-client";
 import { SOCKET_URL } from "./constants";
 
-let socket;
+const SOCKET_GLOBAL_KEY = "__collabWorkspaceSocket";
 
 /**
  * Socket.io client singleton.
@@ -12,13 +12,13 @@ let socket;
  *   const socket = getSocket();
  */
 export const getSocket = () => {
-  if (!socket) {
-    socket = io(SOCKET_URL, {
+  if (!globalThis[SOCKET_GLOBAL_KEY]) {
+    globalThis[SOCKET_GLOBAL_KEY] = io(SOCKET_URL, {
       withCredentials: true,
       autoConnect: true,
     });
   }
-  return socket;
+  return globalThis[SOCKET_GLOBAL_KEY];
 };
 
 /**
@@ -26,8 +26,9 @@ export const getSocket = () => {
  * Call on logout to prevent stale connections.
  */
 export const disconnectSocket = () => {
+  const socket = globalThis[SOCKET_GLOBAL_KEY];
   if (socket) {
     socket.disconnect();
-    socket = null;
+    globalThis[SOCKET_GLOBAL_KEY] = null;
   }
 };
