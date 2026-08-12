@@ -3,7 +3,7 @@ import http from "http";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 import dotenv from "dotenv";
-import { prisma } from "./config/db.js";
+import { prisma, connectPrisma } from "./config/db.js";
 import { initSocket } from "./socket/index.js";
 import authRoutes from "./routes/auth.routes.js";
 import workspaceRoutes from "./routes/workspace.routes.js";
@@ -67,6 +67,9 @@ initSocket(server);
 
 // start server
 const PORT = process.env.PORT || 5000;
+
+// connect Prisma before starting the server (best-effort)
+connectPrisma();
 
 server.on("error", (error) => {
   if (error.code === "EADDRINUSE") {

@@ -81,6 +81,33 @@ Follow these steps to deploy to Railway:
 ```
 
 ---
+ 
+---
+
+## Neon (recommended) — Production deployment notes
+
+Follow these steps to deploy the API using a Neon Postgres database:
+
+```bash
+# 1. Create a Neon project and a production branch
+# 2. In Neon Console, create a database and copy the *pooler* connection string
+#    (it contains "pooler" in the host name). Example:
+#    postgresql://neondb_owner:...@ep-...-pooler.c-3.ap-southeast-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require
+# 3. In your hosting provider (Vercel, Render, fly.io, etc) add the environment variable:
+#    DATABASE_URL=<your-neon-pooler-connection-string>
+# 4. Deploy the API service (root: apps/api).
+# 5. Before starting the service in production, run migrations once:
+#    cd apps/api
+#    npx prisma migrate deploy
+# 6. Start the server (example):
+#    npm run start
+# 7. Ensure `NEXT_PUBLIC_API_URL` and `CLIENT_URL` point to the deployed frontend domain.
+```
+
+Notes:
+- Use the Neon *pooler* (pooler endpoint) in production to avoid connection limits.
+- Keep `sslmode=require` in the connection string. Do NOT commit secrets.
+- If you deploy to serverless platforms consider Prisma Data Proxy or ensure your plan supports persistent connections.
 
 ## 📊 Files Modified
 
