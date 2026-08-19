@@ -5,14 +5,17 @@ const configuredOrigins = (process.env.CLIENT_URL || "http://localhost:3000")
 
 const allowedOrigins = new Set(configuredOrigins);
 
-// Allow Railway preview/prod web domains without manual env edits on every domain rotation.
-const railwayDomainPattern = /^https:\/\/[a-z0-9-]+\.up\.railway\.app$/i;
+const localhostPattern = /^https?:\/\/localhost(?::\d+)?$/i;
+const vercelDomainPattern = /^https:\/\/([a-z0-9-]+\.)*vercel\.app$/i;
+const renderDomainPattern = /^https:\/\/([a-z0-9-]+\.)*onrender\.com$/i;
 
 export const isAllowedOrigin = (origin) => {
   // Non-browser requests (curl, server-to-server) may not send Origin.
   if (!origin) return true;
   if (allowedOrigins.has(origin)) return true;
-  if (railwayDomainPattern.test(origin)) return true;
+  if (localhostPattern.test(origin)) return true;
+  if (vercelDomainPattern.test(origin)) return true;
+  if (renderDomainPattern.test(origin)) return true;
   return false;
 };
 
