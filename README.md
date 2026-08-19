@@ -236,8 +236,8 @@ API (apps/api/.env):
 DATABASE_URL=postgresql://user:password@host:5432/dbname
 JWT_ACCESS_SECRET=your-secret-access-key-here-min-32chars
 JWT_REFRESH_SECRET=your-secret-refresh-key-here-min-32chars
-API_URL=http://localhost:5000
-CLIENT_URL=http://localhost:3000
+API_URL=https://collaborative-workspace-api-4qkm.onrender.com
+CLIENT_URL=https://colaborative-workspace-web.vercel.app
 CLOUDINARY_CLOUD_NAME=your-cloud-name
 CLOUDINARY_API_KEY=your-api-key
 CLOUDINARY_API_SECRET=your-api-secret
@@ -245,8 +245,8 @@ CLOUDINARY_API_SECRET=your-api-secret
 
 Web (apps/web/.env.local):
 ```env
-NEXT_PUBLIC_API_URL=http://localhost:5000/api
-NEXT_PUBLIC_SOCKET_URL=http://localhost:5000
+NEXT_PUBLIC_API_URL=https://collaborative-workspace-api-4qkm.onrender.com/api
+NEXT_PUBLIC_SOCKET_URL=https://collaborative-workspace-api-4qkm.onrender.com
 ```
 
 ## Local development
@@ -283,10 +283,15 @@ Default ports:
 - Web: http://localhost:3000
 
 ## Deployment
-Railway is the reference deployment target. See RAILWAY-DEPLOYMENT.md for step-by-step instructions and DEPLOYMENT-READY.md for the production readiness checklist.
+The application is currently deployed on Render for the API and Vercel for the frontend.
+
+- Backend: https://collaborative-workspace-api-4qkm.onrender.com/
+- Frontend: https://colaborative-workspace-web.vercel.app/
+
+See DEPLOYMENT-READY.md for the production readiness checklist and RAILWAY-DEPLOYMENT.md for prior deployment notes.
 
 ## Operational notes
-- CORS uses CLIENT_URL and allows Railway preview domains for convenience.
+- CORS uses the deployed frontend URL and allows allowed preview domains.
 - /api/files is public; /api/download enforces workspace access.
 - Logout clears cookies; refresh tokens expire after 7 days.
 - No automated tests or rate limiting are configured yet.
