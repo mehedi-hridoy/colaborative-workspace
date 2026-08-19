@@ -4,9 +4,9 @@ Collaborative Workspace is a full-stack platform for aligning teams around goals
 
 ## Live links
 
-- Web app: https://web-production-0b838.up.railway.app
-- API: https://api-production-ca8a.up.railway.app
-- API docs (Swagger): https://api-production-ca8a.up.railway.app/api/docs
+- Web app: https://colaborative-workspace-web.vercel.app/
+- API: https://collaborative-workspace-api-4qkm.onrender.com/
+- API docs (Swagger): https://collaborative-workspace-api-4qkm.onrender.com/api/docs
 - Demo account: demo@teamhub.com / demo123
 
 
@@ -287,8 +287,9 @@ The application is currently deployed on Render for the API and Vercel for the f
 
 - Backend: https://collaborative-workspace-api-4qkm.onrender.com/
 - Frontend: https://colaborative-workspace-web.vercel.app/
+- API docs: https://collaborative-workspace-api-4qkm.onrender.com/api/docs
 
-See DEPLOYMENT-READY.md for the production readiness checklist and RAILWAY-DEPLOYMENT.md for prior deployment notes.
+See DEPLOYMENT-READY.md for the production readiness checklist and RAILWAY-DEPLOYMENT.md for older deployment notes only.
 
 ## Operational notes
 - CORS uses the deployed frontend URL and allows allowed preview domains.
